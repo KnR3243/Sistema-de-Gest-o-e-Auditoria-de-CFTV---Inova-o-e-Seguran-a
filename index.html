@@ -124,12 +124,13 @@
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }, // <-- ADICIONE ESSA LINHA!
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
                 const data = await response.json();
 
                 if (data.sucesso) {
+                    sessionStorage.setItem("scd_auth", "true"); 
                     sessionStorage.setItem("scd_user", u);
                     sessionStorage.setItem("scd_profile", data.perfil);
                     
