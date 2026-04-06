@@ -1,33 +1,44 @@
 export default async function handler(req, res) {
-  const G_URL = process.env.G_SCRIPT_URL; 
+    const G_URL = process.env.G_SCRIPT_URL;
 
-  // Verifica se a variável existe
-  if (!G_URL) {
-    return res.status(500).json({ error: "Variável G_SCRIPT_URL não encontrada nas configurações da Vercel." });
-  }
-
-  try {
-    const urlParams = new URLSearchParams(req.query).toString();
-    const finalUrl = urlParams ? `${G_URL}?${urlParams}` : G_URL;
-
-    const options = {
-      method: req.method,
-      headers: { 'Content-Type': 'application/json' },
-      redirect: 'follow' // OBRIGATÓRIO para Google Apps Script
-    };
-
-    // Só adiciona body se for POST e houver dados
-    if (req.method === 'POST' && req.body) {
-      options.body = JSON.stringify(req.body);
+    if (!G_URL) {
+        return res.status(500).json({ error: "Variável G_SCRIPT_URL não configurada no painel da Vercel." });
     }
 
-    const response = await fetch(finalUrl, options);
-    const data = await response.json();
+    try {
+        // Prepara as configurações da requisição
+        const options = {
+            method: req.method,
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            // O Google Apps Script SEMPRE redireciona. Sem isso dá erro 500.
+            redirect: 'follow' 
+        };
 
-    return res.status(200).json(data);
+        // Se for POST, anexa o corpo da mensagem
+        if (req.method === 'POST') {
+            options.body = JSON.stringify(req.body);
+        }
 
-  } catch (error) {
-    console.error("Erro no Proxy:", error);
-    return res.status(500).json({ error: "Falha na conexão com o Banco de Dados", detalhes: error.message });
-  }
+        // Adiciona parâmetros de URL (se houver, como ?acao=getCameras)
+        const urlParams = new URLSearchParams(req.query).toString();
+        const finalUrl = urlParams ? `${G_URL}?${urlParams}` : G_URL;
+
+        const response = await fetch(finalUrl, options);
+        
+        // Lê a resposta como texto primeiro para evitar erro de parse
+        const responseText = await response.text();
+        
+        try {
+            const data = JSON.parse(responseText);
+            return res.status(200).json(data);
+        } catch (e) {
+            // Se o Google retornar erro em HTML em vez de JSON
+            return res.status(500).json({ error: "Resposta do Google não é um JSON válido", detalhes: responseText });
+        }
+
+    } catch (error) {
+        return res.status(500).json({ error: "Erro interno no servidor Vercel", detalhes: error.message });
+    }
 }
