@@ -199,7 +199,8 @@
 
         async function load() {
             try {
-                const res = await fetch(API_URL);
+                // AQUI ESTÁ A CORREÇÃO: Enviando a ação para buscar as câmeras
+                const res = await fetch(API_URL + "?acao=getCameras");
                 cameras = await res.json();
                 document.getElementById('loading').style.display = 'none';
                 render();
@@ -220,7 +221,10 @@
             const filtered = currentUnit === 'all' ? cameras : cameras.filter(c => c.unidade === currentUnit);
             
             filtered.forEach(c => {
-                const isOn = c.status.toLowerCase() === 'online';
+                // Previne erro caso o status venha nulo da planilha
+                const statusTexto = c.status || 'online';
+                const isOn = statusTexto.toLowerCase() === 'online';
+                
                 grid.innerHTML += `
                     <div class="card" style="border-top-color: ${isOn ? 'var(--online)' : 'var(--offline)'}">
                         <h3>${c.nome}</h3>
@@ -228,9 +232,9 @@
                         <div class="info"><i class="fa-solid fa-map-pin"></i> <b>Local:</b> ${c.local}</div>
                         <div class="info"><i class="fa-solid fa-building"></i> <b>Unid:</b> ${c.unidade}</div>
                         <span class="status-pill ${isOn ? 'st-online' : 'st-offline'}">
-                            <i class="fa-solid ${isOn ? 'fa-check-circle' : 'fa-times-circle'}"></i> ${c.status}
+                            <i class="fa-solid ${isOn ? 'fa-check-circle' : 'fa-times-circle'}"></i> ${statusTexto}
                         </span>
-                        <div class="btn-edit" onclick='openModal("edit", ${JSON.stringify(c)})'>
+                        <div class="btn-edit" onclick='openModal("edit", ${JSON.stringify(c).replace(/'/g, "&apos;")})'>
                             <i class="fa-solid fa-pen-to-square"></i>
                         </div>
                     </div>`;
@@ -269,11 +273,12 @@
             };
             await fetch(API_URL, { 
                 method: 'POST', 
-                headers: { 'Content-Type': 'application/json' }, // <-- ADICIONE O HEADERS AQUI TAMBÉM
+                headers: { 'Content-Type': 'application/json' }, 
                 body: JSON.stringify(payload) 
             });
             location.reload();
         }
+        
         load();
     </script>
 </body>
