@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ICC-CÂMERAS | Novo Checklist</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            /* MODO CLARO */
+            --icc-green: #2e7d32; 
+            --icc-orange: #ef6c00; 
+            --app-blue: #3b82f6;
+            --bg: #f4f7f6; 
+            --card-bg: #ffffff; 
+            --text: #333333; 
+            --border: #d1d5db;
+            --sidebar-w: 240px;
+        }
+
+        /* MODO ESCURO NATIVO */
+        body.dark-mode {
+            --bg: #121212; 
+            --card-bg: #1e1e1e; 
+            --text: #f0f0f0; 
+            --border: #333333;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; transition: background 0.3s, color 0.3s, border-color 0.3s; }
+        
+        body { display: flex; flex-direction: column; height: 100vh; background: var(--bg); color: var(--text); overflow: hidden; }
+
+        /* HEADER TOPO */
+        .top-bar { 
+            background: var(--icc-green); color: white; padding: 0 30px; height: 70px; 
+            display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; 
+            z-index: 20; box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        .logo-img { height: 40px; }
+        .logo-section { display: flex; align-items: center; gap: 15px; white-space: nowrap; }
+
+        .app-layout { display: flex; flex: 1; overflow: hidden; }
+
+        /* SIDEBAR */
+        aside { 
+            width: var(--sidebar-w); background: var(--card-bg); border-right: 1px solid var(--border); 
+            display: flex; flex-direction: column; flex-shrink: 0;
+        }
+        .btn-home { 
+            background: var(--icc-orange); color: white; padding: 12px; margin: 20px auto; 
+            border-radius: 12px; text-decoration: none; text-align: center; font-weight: 700; font-size: 14px; 
+            display: flex; align-items: center; justify-content: center; gap: 10px; width: 80%; 
+            box-shadow: 0 4px 10px rgba(239, 108, 0, 0.2); transition: 0.3s;
+        }
+        .btn-home:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        
+        .sidebar-menu { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+        .sidebar-item { 
+            padding: 15px 25px; color: var(--text); opacity: 0.7; display: flex; align-items: center; 
+            gap: 12px; border-left: 5px solid transparent; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.3s; 
+        }
+        .sidebar-item:hover { background: rgba(128, 128, 128, 0.1); opacity: 1; }
+        .sidebar-item.active { color: var(--icc-orange); opacity: 1; border-left: 5px solid var(--icc-orange); background: rgba(239, 108, 0, 0.05); }
+
+        /* ÁREA PRINCIPAL */
+        main { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; position: relative; }
+        
+        .form-container { width: 100%; max-width: 850px; margin-bottom: 30px; }
+        
+        .form-group-row { 
+            display: flex; align-items: center; justify-content: space-between; gap: 15px; 
+            background: var(--card-bg); padding: 18px 25px; border-radius: 15px; border: 1px solid var(--border); 
+            margin-bottom: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        }
+        body.dark-mode .form-group-row { box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        
+        .form-group-row label { font-size: 14px; font-weight: 700; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; }
+        .input-icon-wrapper { position: relative; width: 65%; }
+        .input-icon-wrapper i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #888; }
+        
+        .input-icon-wrapper input[type="text"], .input-icon-wrapper select {
+            width: 100%; padding: 12px 15px; border: 1px solid var(--border); border-radius: 10px; 
+            font-size: 15px; background: var(--bg); color: var(--text); outline: none; font-weight: 600; transition: border-color 0.3s;
+        }
+        .input-icon-wrapper select:focus { border-color: var(--icc-orange); }
+        .input-icon-wrapper input[readonly] { color: #888; cursor: not-allowed; border-color: transparent; background: transparent; text-align: right; padding-right: 15px; }
+
+        /* NVR E CAMERAS */
+        .nvr-group { margin-top: 35px; }
+        .nvr-header { 
+            background: var(--card-bg); padding: 18px 25px; border-radius: 15px; border: 1px solid var(--border); 
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer; 
+            font-weight: 800; font-size: 15px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); color: var(--icc-orange); text-transform: uppercase;
+        }
+        .nvr-header i.fa-chevron-down { transition: transform 0.3s; color: var(--text); }
+        .nvr-header.fechado i.fa-chevron-down { transform: rotate(-90deg); }
+        .nvr-body { display: block; padding-left: 10px; border-left: 2px dashed var(--border); margin-left: 15px; }
+        .nvr-body.fechado { display: none; }
+
+        .camera-card { 
+            background: var(--card-bg); border: 1px solid var(--border); border-radius: 15px; 
+            margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.03); transition: 0.3s;
+        }
+        .camera-card:hover { border-color: #888; }
+        .camera-header { 
+            padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; 
+            cursor: pointer; font-weight: 600; font-size: 15px; border-left: 6px solid var(--icc-green); 
+        }
+        .camera-header i.fa-chevron-right { transition: transform 0.3s; color: #888; }
+        .camera-header.open i.fa-chevron-right { transform: rotate(90deg); }
+        .camera-header.has-error { border-left-color: #ef4444; background: rgba(239, 68, 68, 0.05); }
+
+        .camera-body { padding: 25px; border-top: 1px solid var(--border); display: none; background: var(--bg); }
+        .camera-body.open { display: block; }
+        .form-group-cam { margin-bottom: 18px; }
+        .form-group-cam label { font-size: 13px; font-weight: 700; color: #888; text-transform: uppercase; display: block; margin-bottom: 8px; }
+
+        .segmented-control { display: flex; gap: 10px; width: 100%; }
+        .segment-btn { 
+            flex: 1; text-align: center; padding: 12px; border: 2px solid var(--border); 
+            border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 13px; 
+            background: var(--card-bg); color: var(--text); transition: 0.2s; text-transform: uppercase;
+        }
+        .segment-btn input { display: none; }
+        .segment-ok:has(input:checked) { background: var(--icc-green); border-color: var(--icc-green); color: white; }
+        .segment-falha:has(input:checked) { background: #ef4444; border-color: #ef4444; color: white; }
+        .segment-sim:has(input:checked) { background: var(--icc-orange); border-color: var(--icc-orange); color: white; }
+        .segment-nao:has(input:checked) { background: #6b7280; border-color: #6b7280; color: white; }
+
+        .camera-body select { 
+            width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; 
+            background: var(--card-bg); color: var(--text); font-size: 14px; font-weight: 600; outline: none; cursor: pointer;
+        }
+        
+        .upload-wrapper { display: flex; gap: 15px; align-items: center; }
+        .upload-btn { 
+            flex: 1; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 15px; 
+            border: 2px dashed var(--border); border-radius: 10px; cursor: pointer; color: #888; font-size: 14px; 
+            font-weight: bold; background: var(--card-bg); transition: 0.3s; text-transform: uppercase;
+        }
+        .upload-btn:hover { border-color: var(--icc-orange); color: var(--icc-orange); }
+        .upload-btn input { display: none; }
+        .foto-preview { width: 60px; height: 60px; border-radius: 10px; object-fit: cover; display: none; border: 1px solid var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        /* ASSINATURA */
+        .signature-container { 
+            background: var(--card-bg); padding: 25px; border-radius: 15px; border: 1px solid var(--border); 
+            margin-top: 35px; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
+        }
+        .signature-container label { font-size: 14px; font-weight: 700; color: var(--text); text-transform: uppercase; display: block; margin-bottom: 15px; }
+        canvas { background: #fff; border-radius: 10px; width: 100%; height: 250px; border: 2px dashed #ccc; touch-action: none; cursor: crosshair; }
+        
+        .btn-limpar { 
+            background: transparent; color: #ef4444; border: 1px solid #ef4444; font-weight: bold; 
+            padding: 10px 15px; border-radius: 8px; margin-top: 15px; cursor: pointer; font-size: 12px; transition: 0.3s;
+        }
+        .btn-limpar:hover { background: #ef4444; color: white; }
+
+        /* BOTÕES PRINCIPAIS */
+        .btn-avancar { 
+            width: 100%; background: var(--icc-green); color: white; border: none; padding: 20px; 
+            border-radius: 12px; font-size: 15px; font-weight: 800; cursor: pointer; margin-top: 25px; 
+            text-transform: uppercase; transition: 0.3s; box-shadow: 0 5px 15px rgba(46, 125, 50, 0.3); display: flex; justify-content: center; gap: 10px; align-items: center;
+        }
+        .btn-avancar:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        
+        #preview-section { display: none; width: 100%; max-width: 850px;}
+        .preview-box { background: var(--card-bg); padding: 30px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .preview-item { margin-bottom: 20px; font-size: 15px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        .preview-item b { color: var(--icc-orange); display: block; margin-bottom: 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .alerta-falta { color: #f59e0b; font-weight: bold; font-size: 13px; margin-top: 5px; display: block;}
+        
+        .btn-row { display: flex; gap: 15px; margin-top: 25px;}
+        .btn-voltar { flex: 1; background: #6b7280; color: white; border: none; padding: 18px; border-radius: 12px; font-weight: bold; font-size: 14px; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+        .btn-voltar:hover { background: #4b5563; }
+        .btn-confirmar { flex: 2; background: var(--icc-orange); color: white; border: none; padding: 18px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; text-transform: uppercase; transition: 0.3s; box-shadow: 0 5px 15px rgba(239, 108, 0, 0.3); display: flex; align-items: center; justify-content: center; gap: 10px;}
+        .btn-confirmar:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+        @media (max-width: 768px) {
+            .app-layout { flex-direction: column; } 
+            aside { width: 100%; flex-direction: row; border-right: none; border-bottom: 1px solid var(--border); align-items: center; padding: 5px 10px; overflow-x: auto; }
+            .btn-home { width: auto; padding: 10px 15px; margin: 0 15px 0 0; white-space: nowrap; font-size: 0; box-shadow: none;}
+            .btn-home i { font-size: 16px; margin: 0; }
+            
+            .sidebar-menu { flex-direction: row; align-items: center; }
+            .sidebar-item { padding: 10px 15px; white-space: nowrap; border-left: none; border-bottom: 3px solid transparent; border-radius: 8px 8px 0 0; }
+            .sidebar-item.active { border-left: none; border-bottom: 3px solid var(--icc-orange); background: transparent; color: var(--icc-orange); }
+
+            .form-group-row { flex-direction: column; align-items: flex-start; gap: 8px; padding: 15px;} 
+            .input-icon-wrapper { width: 100%; }
+            .input-icon-wrapper input[readonly] { text-align: left; padding-left: 15px; background: var(--bg); border-color: var(--border);}
+            .btn-row { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <script>
+        if (localStorage.getItem('dark-mode') === 'true') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+
+    <div class="top-bar">
+        <div class="logo-section">
+            <img src="logo.png" alt="ICC" class="logo-img">
+            <h2 style="font-size: 18px; letter-spacing: 1px; margin: 0;">Gestão de Câmeras</h2>
+        </div>
+        <i class="fa-solid fa-clipboard-list" style="font-size: 22px; opacity: 0.8;"></i>
+    </div>
+
+    <div class="app-layout">
+        <aside>
+            <a href="menu.html" class="btn-home"><i class="fa-solid fa-arrow-left"></i> Voltar</a>
+            <div class="sidebar-menu">
+                <div class="sidebar-item active"><i class="fa-solid fa-list-check"></i> Checklist Diário</div>
+            </div>
+        </aside>
+
+        <main>
+            <div class="form-container" id="form-section">
+                <div class="form-group-row">
+                    <label>Data</label>
+                    <div class="input-icon-wrapper"><input type="text" id="data_atual" readonly></div>
+                </div>
+                <div class="form-group-row">
+                    <label>Horário</label>
+                    <div class="input-icon-wrapper"><input type="text" id="hora_atual" readonly></div>
+                </div>
+                <div class="form-group-row">
+                    <label>Responsável</label>
+                    <div class="input-icon-wrapper"><input type="text" id="resp" readonly></div>
+                </div>
+                
+                <div class="form-group-row" style="border-color: var(--icc-orange);">
+                    <label>Unidade <span style="color: var(--icc-orange);">*</span></label>
+                    <div class="input-icon-wrapper">
+                        <select id="unidade" required onchange="carregarCamerasDaInterface()">
+                            <option value="">Aguarde, carregando...</option>
+                        </select>
+                        <i class="fa-solid fa-building"></i>
+                    </div>
+                </div>
+
+                <div id="lista-cameras"><p style="text-align: center; color: #888; padding: 40px; font-weight: bold;"><i class="fa-solid fa-circle-notch fa-spin"></i> Conectando ao banco de dados...</p></div>
+                
+                <div class="signature-container" id="sig-box">
+                    <label><i class="fa-solid fa-signature"></i> Assinatura do Operador <span style="color: var(--icc-orange);">*</span></label>
+                    <canvas id="canvas-assinatura"></canvas>
+                    <button class="btn-limpar" onclick="limparAssinatura()"><i class="fa-solid fa-eraser"></i> Limpar Assinatura</button>
+                </div>
+
+                <button type="button" class="btn-avancar" id="btn-resumo" onclick="gerarPreview()" style="display: none;">Verificar Resumo <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+
+            <div class="form-container" id="preview-section">
+                <h2 style="margin-bottom: 25px; color: var(--icc-orange); font-size: 20px;"><i class="fa-solid fa-file-contract"></i> Resumo do Relatório</h2>
+                <div class="preview-box">
+                    <div class="preview-item"><b>Informações Base</b> <span id="prev-info" style="color:var(--text); line-height: 1.6;"></span></div>
+                    <div class="preview-item" style="border: none; display: block;">
+                        <b>Detalhamento de Registros e Ocorrências</b> 
+                        <div id="prev-falhas" style="margin-top: 15px;"></div>
+                    </div>
+                    <div class="preview-item" style="border: none; display: block; margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 20px;">
+                        <b>Assinatura Registrada</b>
+                        <img id="prev-assinatura-img" src="" style="background: white; height: 100px; border-radius: 10px; padding: 5px; margin-top: 10px; border: 2px solid var(--border);">
+                    </div>
+                </div>
+                <div class="btn-row">
+                    <button class="btn-voltar" onclick="voltarEdicao()"><i class="fa-solid fa-arrow-rotate-left"></i> Voltar e Corrigir</button>
+                    <button class="btn-confirmar" id="btn-salvar" onclick="enviarDadosGerarPDF()"><i class="fa-solid fa-cloud-arrow-up"></i> Enviar BD e Gerar PDF</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        if (sessionStorage.getItem('scd_auth') !== 'true') {
+            window.location.href = 'index.html';
+        }
+        const API_URL = "/api/proxy";
+        
+        let bdCamerasDinamic = {};
+
+        setInterval(() => {
+            const a = new Date();
+            document.getElementById('data_atual').value = a.toLocaleDateString('pt-BR');
+            document.getElementById('hora_atual').value = a.toLocaleTimeString('pt-BR');
+        }, 1000);
+
+        window.onload = async () => {
+            document.getElementById('resp').value = (sessionStorage.getItem('scd_profile') || sessionStorage.getItem('scd_user') || "ADMINISTRADOR").toUpperCase();
+            initSignaturePad();
+            await buscarCamerasDoBanco();
+        };
+
+        async function buscarCamerasDoBanco() {
+            try {
+                const response = await fetch(API_URL + "?acao=getCameras");
+                const data = await response.json();
+                
+                if(data.erro) {
+                    document.getElementById('lista-cameras').innerHTML = `<p style="color:#ef4444; text-align:center; padding:30px;"><i class="fa-solid fa-triangle-exclamation fa-2x"></i><br>Erro de comunicação: ${data.erro}</p>`;
+                    return;
+                }
+
+                bdCamerasDinamic = {};
+                data.forEach(item => {
+                    const unid = item.unidade;
+                    const cam = item.nome;     
+                    const nvr = item.nvr;      
+                    const local = item.local;  
+                    
+                    const nvrFormatado = nvr + (local ? " - " + local : "");
+
+                    if (!bdCamerasDinamic[unid]) bdCamerasDinamic[unid] = [];
+                    
+                    let grupoExistente = bdCamerasDinamic[unid].find(g => g.nvr === nvrFormatado);
+                    if (!grupoExistente) {
+                        grupoExistente = { nvr: nvrFormatado, cameras: [] };
+                        bdCamerasDinamic[unid].push(grupoExistente);
+                    }
+                    grupoExistente.cameras.push(cam);
+                });
+
+                const selUnidade = document.getElementById('unidade');
+                selUnidade.innerHTML = '<option value="">Selecione...</option>';
+                Object.keys(bdCamerasDinamic).forEach(u => {
+                    selUnidade.innerHTML += `<option value="${u}">${u}</option>`;
+                });
+
+                document.getElementById('lista-cameras').innerHTML = '<p style="text-align: center; color: #888; padding: 40px; font-weight: bold;"><i class="fa-solid fa-camera fa-2x" style="margin-bottom:15px; opacity:0.5;"></i><br>Selecione a Unidade acima para carregar as câmeras.</p>';
+
+            } catch(e) {
+                document.getElementById('lista-cameras').innerHTML = '<p style="color:#ef4444; text-align:center; padding:30px;"><i class="fa-solid fa-plug-circle-xmark fa-2x"></i><br>Falha ao carregar câmeras do banco de dados.</p>';
+            }
+        }
+
+        let fotosCapturadas = {};
+
+        function carregarCamerasDaInterface() {
+            const unidade = document.getElementById('unidade').value;
+            const container = document.getElementById('lista-cameras');
+            const sigBox = document.getElementById('sig-box');
+            const btnResumo = document.getElementById('btn-resumo');
+            container.innerHTML = ''; fotosCapturadas = {}; limparAssinatura();
+
+            if(!unidade) { sigBox.style.display = 'none'; btnResumo.style.display = 'none'; return; }
+
+            let cameraIndexGlobal = 0; 
+            bdCamerasDinamic[unidade].forEach((grupo) => {
+                let htmlGrupo = `<div class="nvr-group"><div class="nvr-header" onclick="toggleNVR(this)"><div><i class="fa-solid fa-server" style="margin-right: 8px;"></i> ${grupo.nvr}</div><i class="fa-solid fa-chevron-down"></i></div><div class="nvr-body" data-nvr="${grupo.nvr}">`;
+                
+                grupo.cameras.forEach(cam => {
+                    const idx = cameraIndexGlobal++;
+                    htmlGrupo += `
+                        <div class="camera-card">
+                            <div class="camera-header" onclick="toggleCard(this)">
+                                <div class="cam-nome"><span style="color:#888; font-size: 11px; display:block; text-transform:uppercase; font-weight: bold; margin-bottom: 2px;">Câmera</span> ${cam}</div>
+                                <div><span class="status-badge" style="font-size: 12px; color: var(--icc-green); margin-right: 15px; font-weight: 800; border: 1px solid var(--icc-green); padding: 4px 10px; border-radius: 5px;">OK</span><i class="fa-solid fa-chevron-right"></i></div>
+                            </div>
+                            <div class="camera-body">
+                                <div class="form-group-cam">
+                                    <label>Status Operacional</label>
+                                    <div class="segmented-control">
+                                        <label class="segment-btn segment-ok"><input type="radio" name="status_${idx}" value="OK" checked onchange="verificarStatus(this, ${idx})"> <i class="fa-solid fa-check"></i> OK</label>
+                                        <label class="segment-btn segment-falha"><input type="radio" name="status_${idx}" value="Falha" onchange="verificarStatus(this, ${idx})"> <i class="fa-solid fa-xmark"></i> Falha</label>
+                                    </div>
+                                </div>
+                                <div class="form-group-cam" id="bloco_tratativa_${idx}" style="display: none;">
+                                    <label>Tratativa Imediata?</label>
+                                    <div class="segmented-control">
+                                        <label class="segment-btn segment-sim"><input type="radio" name="tratativa_${idx}" value="Sim" checked> Sim</label>
+                                        <label class="segment-btn segment-nao"><input type="radio" name="tratativa_${idx}" value="Não"> Não</label>
+                                    </div>
+                                </div>
+                                <div class="form-group-cam" id="bloco_desc_${idx}" style="display: none;">
+                                    <label>Ação Realizada</label>
+                                    <select name="desc_${idx}">
+                                        <option value="">Selecione...</option>
+                                        <option value="Cabo reconectado / Limpeza">Cabo reconectado / Limpeza</option>
+                                        <option value="Aguardando Manutenção Externa">Aguardando Manutenção Externa</option>
+                                        <option value="Solicitada Substituição (Queimada)">Solicitada Substituição (Queimada)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group-cam" id="bloco_foto_${idx}">
+                                    <label>Evidência Visual (Opcional para OK)</label>
+                                    <div class="upload-wrapper">
+                                        <label class="upload-btn"><input type="file" accept="image/*" capture="environment" onchange="salvarFoto(this, ${idx})"><i class="fa-solid fa-camera"></i> Capturar Imagem</label>
+                                        <img id="preview-foto-${idx}" class="foto-preview">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                htmlGrupo += `</div></div>`;
+                container.innerHTML += htmlGrupo;
+            });
+            
+            sigBox.style.display = 'block'; 
+            btnResumo.style.display = 'block';
+            setTimeout(resizeSignatureCanvas, 150); 
+        }
+
+        function toggleNVR(h) { h.classList.toggle('fechado'); h.nextElementSibling.classList.toggle('fechado'); }
+        function toggleCard(h) { h.classList.toggle('open'); h.nextElementSibling.classList.toggle('open'); }
+
+        function verificarStatus(radio, index) {
+            const isFalha = radio.value === 'Falha';
+            document.getElementById(`bloco_tratativa_${index}`).style.display = isFalha ? 'block' : 'none';
+            document.getElementById(`bloco_desc_${index}`).style.display = isFalha ? 'block' : 'none';
+            
+            const header = radio.closest('.camera-card').querySelector('.camera-header');
+            const badge = header.querySelector('.status-badge');
+            if(isFalha) {
+                header.classList.add('has-error'); 
+                badge.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> FALHA"; 
+                badge.style.color = "#ef4444";
+                badge.style.borderColor = "#ef4444";
+                if(!header.classList.contains('open')) toggleCard(header);
+            } else {
+                header.classList.remove('has-error'); 
+                badge.innerHTML = "OK"; 
+                badge.style.color = "var(--icc-green)";
+                badge.style.borderColor = "var(--icc-green)";
+                if(header.classList.contains('open')) toggleCard(header);
+            }
+        }
+
+        // COMPRESSOR DE IMAGEM OTIMIZADO
+        function salvarFoto(input, idx) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 500; 
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > MAX_WIDTH) {
+                            height = Math.round((height * MAX_WIDTH) / width);
+                            width = MAX_WIDTH;
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        const base64Formatado = canvas.toDataURL('image/jpeg', 0.6);
+                        fotosCapturadas[idx] = base64Formatado; 
+                        
+                        const imgPreview = document.getElementById(`preview-foto-${idx}`);
+                        imgPreview.src = base64Formatado; 
+                        imgPreview.style.display = 'block'; 
+                    }
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        let canvas, ctx, isDrawing = false, hasSignature = false;
+        function resizeSignatureCanvas() {
+            if(!canvas) return;
+            const rect = canvas.parentElement.getBoundingClientRect();
+            if(rect.width === 0) return; 
+            canvas.width = rect.width - 50; 
+            canvas.height = 200; 
+            ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.strokeStyle = '#000'; 
+        }
+
+        function initSignaturePad() {
+            canvas = document.getElementById('canvas-assinatura'); ctx = canvas.getContext('2d');
+            window.addEventListener('resize', resizeSignatureCanvas); 
+            setTimeout(resizeSignatureCanvas, 100); 
+
+            const getPos = (e) => { 
+                const rect = canvas.getBoundingClientRect(); 
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                return { x: ((e.touches ? e.touches[0].clientX : e.clientX) - rect.left) * scaleX, y: ((e.touches ? e.touches[0].clientY : e.clientY) - rect.top) * scaleY }; 
+            };
+            const start = (e) => { e.preventDefault(); isDrawing = true; hasSignature = true; const pos = getPos(e); ctx.beginPath(); ctx.moveTo(pos.x, pos.y); };
+            const draw = (e) => { e.preventDefault(); if (!isDrawing) return; const pos = getPos(e); ctx.lineTo(pos.x, pos.y); ctx.stroke(); };
+            const stop = (e) => { e.preventDefault(); isDrawing = false; };
+            
+            canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', draw); canvas.addEventListener('mouseup', stop); canvas.addEventListener('mouseout', stop);
+            canvas.addEventListener('touchstart', start, {passive: false}); canvas.addEventListener('touchmove', draw, {passive: false}); canvas.addEventListener('touchend', stop);
+        }
+        function limparAssinatura() { ctx.clearRect(0, 0, canvas.width, canvas.height); hasSignature = false; }
+
+        let payloadDB = {};
+
+        function gerarPreview() {
+            if(!hasSignature) { alert("A assinatura do operador é obrigatória."); return; }
+
+            const und = document.getElementById('unidade').value;
+            const dataH = document.getElementById('data_atual').value;
+            const horaH = document.getElementById('hora_atual').value;
+            const respH = document.getElementById('resp').value;
+            
+            document.getElementById('prev-info').innerHTML = `<b>Unidade:</b> ${und} <br> <b>Data/Hora:</b> ${dataH} às ${horaH} <br> <b>Responsável:</b> ${respH}`;
+            document.getElementById('prev-assinatura-img').src = canvas.toDataURL();
+            
+            let htmlRegistrosPreview = '';
+            let htmlTabelaPDF = '';
+            let falhasDB = [];
+            let formValido = true;
+
+            document.querySelectorAll('.nvr-body').forEach((nvr) => {
+                const nvrNome = nvr.dataset.nvr;
+                htmlTabelaPDF += `<div style="background-color: #2e7d32; color: white; padding: 6px 12px; font-weight: bold; font-size: 13px; margin-top: 20px; border-radius: 4px 4px 0 0;">${nvrNome}</div>`;
+                htmlTabelaPDF += `<table style="width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 10px;"><thead><tr><th style="border: 1px solid #333; padding: 8px; background-color: #e5e7eb; width: 35%;">Câmera</th><th style="border: 1px solid #333; padding: 8px; background-color: #e5e7eb; width: 15%;">Status</th><th style="border: 1px solid #333; padding: 8px; background-color: #e5e7eb; width: 30%;">Mensagem / Ação</th><th style="border: 1px solid #333; padding: 8px; background-color: #e5e7eb; width: 20%;">Evidência Visual</th></tr></thead><tbody>`;
+                
+                nvr.querySelectorAll('.camera-card').forEach((card) => {
+                    const statusInput = card.querySelector('input[type="radio"]:checked');
+                    if(!statusInput) return;
+                    
+                    const gIdx = statusInput.name.split('_')[1];
+                    const camNome = card.querySelector('.cam-nome').innerText.replace(/Câmera\s*/i, '');
+                    const temFoto = fotosCapturadas[gIdx] ? true : false;
+                    
+                    const fotoImgTag = temFoto ? `<img src="${fotosCapturadas[gIdx]}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 10px; border: 2px solid var(--border);">` : `<div style="width: 80px; height: 80px; background: rgba(128,128,128,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #888; font-size: 10px; text-align: center; border: 1px dashed var(--border);">Sem Imagem</div>`;
+                    const fotoPdfTag = temFoto ? `<img src="${fotosCapturadas[gIdx]}" style="max-height: 45px; border:1px solid #ccc; border-radius: 4px;">` : `<i style="color:#888;">Sem anexo</i>`;
+                    
+                    if(statusInput.value === 'Falha') {
+                        const tratativa = card.querySelector(`input[name="tratativa_${gIdx}"]:checked`).value;
+                        const acao = card.querySelector(`select[name="desc_${gIdx}"]`).value;
+
+                        let alertaAcao = "";
+                        if(!acao) {
+                            alertaAcao = `<span class="alerta-falta"><i class="fa-solid fa-circle-exclamation"></i> Faltou a Ação Realizada!</span>`;
+                            formValido = false;
+                        }
+
+                        htmlRegistrosPreview += `
+                            <div style="margin-bottom: 12px; padding: 18px; background: rgba(239, 68, 68, 0.05); border-left: 5px solid #ef4444; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <span style="color: #ef4444; font-weight: 800; font-size: 15px;"><i class="fa-solid fa-video-slash"></i> ${camNome} (FALHA)</span>
+                                    <div style="margin-top: 8px; font-size: 13px; color: var(--text);">
+                                        <b>Ação:</b> ${acao || '<i>Nenhuma</i>'} ${alertaAcao}
+                                    </div>
+                                </div>
+                                ${fotoImgTag}
+                            </div>`;
+                        
+                        htmlTabelaPDF += `<tr><td style="border: 1px solid #333; padding: 8px; font-weight:bold;">${camNome}</td><td style="border: 1px solid #333; padding: 8px; color:red; font-weight:bold; text-align:center;">FALHA</td><td style="border: 1px solid #333; padding: 8px;">${acao}</td><td style="border: 1px solid #333; padding: 8px; text-align:center; vertical-align:middle;">${fotoPdfTag}</td></tr>`;
+                        falhasDB.push(`${camNome} (${acao})`);
+                    
+                    } else { 
+                        const msgOk = "Câmera operante / OK";
+                        
+                        if (temFoto) {
+                            htmlRegistrosPreview += `
+                            <div style="margin-bottom: 12px; padding: 18px; background: rgba(76, 175, 80, 0.05); border-left: 5px solid var(--icc-green); border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <span style="color: var(--icc-green); font-weight: 800; font-size: 15px;"><i class="fa-solid fa-check-circle"></i> ${camNome} (OK)</span>
+                                    <div style="margin-top: 8px; font-size: 13px; color: var(--text);">
+                                        <b>Mensagem:</b> ${msgOk}
+                                    </div>
+                                </div>
+                                ${fotoImgTag}
+                            </div>`;
+                        }
+
+                        htmlTabelaPDF += `<tr><td style="border: 1px solid #333; padding: 8px;">${camNome}</td><td style="border: 1px solid #333; padding: 8px; color:green; font-weight:bold; text-align:center;">OK</td><td style="border: 1px solid #333; padding: 8px; color:#555;">${msgOk}</td><td style="border: 1px solid #333; padding: 8px; text-align:center; vertical-align:middle;">${fotoPdfTag}</td></tr>`;
+                    }
+                });
+                htmlTabelaPDF += `</tbody></table>`;
+            });
+
+            if(!formValido) { alert("Existem câmeras com falha sem ação realizada. Por favor, revise."); return; }
+
+            if(htmlRegistrosPreview === '') {
+                document.getElementById('prev-falhas').innerHTML = '<div style="padding: 20px; border: 2px dashed var(--icc-green); color: var(--icc-green); border-radius: 12px; text-align:center; font-weight:bold;"><i class="fa-solid fa-check-circle fa-2x" style="margin-bottom:10px;"></i><br>Tudo 100% OK. Nenhuma ocorrência visual anexada.</div>';
+            } else {
+                document.getElementById('prev-falhas').innerHTML = htmlRegistrosPreview;
+            }
+
+            // PAYLOAD SERVIDOR
+            payloadDB = { 
+                acao: 'add_checklist', 
+                data: dataH, 
+                horario: horaH, 
+                responsavel: respH, 
+                unidade: und, 
+                ocorrencias: falhasDB.length > 0 ? falhasDB.join(' | ') : "100% OK",
+                htmlTabelaCameras: htmlTabelaPDF,
+                assinaturaB64: canvas.toDataURL()
+            };
+
+            document.getElementById('form-section').style.display = 'none';
+            document.getElementById('preview-section').style.display = 'block';
+            window.scrollTo(0,0);
+        }
+
+        function voltarEdicao() { document.getElementById('preview-section').style.display = 'none'; document.getElementById('form-section').style.display = 'block'; }
+
+        async function enviarDadosGerarPDF() {
+            const btn = document.getElementById('btn-salvar');
+            btn.disabled = true; 
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Sincronizando Banco e PDF...';
+
+            try {
+                let response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    body: JSON.stringify(payloadDB)
+                });
+                
+                let result = await response.json();
+                
+                if(result.sucesso) {
+                    alert("Relatório concluído com sucesso e PDF gerado!");
+                    window.open(result.linkDoc, "_blank"); 
+                    window.location.href = 'menu.html';
+                } else {
+                    alert("Erro retornado pelo servidor: " + result.erro);
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Tentar Novamente';
+                }
+            } catch (e) {
+                alert("Erro ao enviar dados. Verifique sua conexão com a internet.");
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Tentar Novamente';
+            }
+        }
+    </script>
+</body>
+</html>

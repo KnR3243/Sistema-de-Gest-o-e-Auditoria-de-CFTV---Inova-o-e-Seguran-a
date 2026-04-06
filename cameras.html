@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ICC-CÂMERAS | Lista de Câmeras</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root { 
+            --icc-green: #2e7d32; 
+            --icc-orange: #ef6c00; 
+            --bg: #f4f7f6; 
+            --card-bg: #ffffff;
+            --text: #333;
+            --border: #d1d5db;
+            --online: #4caf50; 
+            --offline: #d32f2f; 
+            --sidebar-w: 220px;
+        }
+
+        body.dark-mode {
+            --bg: #121212;
+            --card-bg: #1e1e1e;
+            --text: #f0f0f0;
+            --border: #333;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; transition: background 0.3s, color 0.3s; }
+        
+        body { display: flex; flex-direction: column; height: 100vh; background: var(--bg); color: var(--text); overflow: hidden; }
+
+        .top-bar { 
+            background: var(--icc-green); color: white; padding: 0 30px; height: 70px;
+            display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+            z-index: 20;
+        }
+        .logo-img { height: 40px; }
+        
+        .logo-section { 
+            display: flex; align-items: center; flex-direction: row; gap: 15px; white-space: nowrap; 
+        }
+
+        .app-layout { display: flex; flex: 1; overflow: hidden; }
+
+        aside { 
+            width: var(--sidebar-w); background: var(--card-bg); border-right: 1px solid var(--border); 
+            display: flex; flex-direction: column; flex-shrink: 0;
+        }
+
+        .btn-home {
+            background: var(--icc-orange); color: white; 
+            padding: 10px 20px; margin: 20px auto; 
+            border-radius: 12px; text-decoration: none;
+            display: flex; align-items: center; justify-content: center; 
+            gap: 10px; font-size: 14px; font-weight: 700;
+            width: 80%; transition: 0.3s;
+            box-shadow: 0 4px 10px rgba(239, 108, 0, 0.2);
+        }
+        .btn-home:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+        .sidebar-menu { flex: 1; overflow-y: auto; }
+        .sidebar-item { 
+            padding: 15px 25px; cursor: pointer; color: var(--text); display: flex; 
+            align-items: center; gap: 12px; transition: 0.2s; border-left: 5px solid transparent; 
+            font-size: 15px; font-weight: 600; opacity: 0.7;
+        }
+        .sidebar-item.active { opacity: 1; color: var(--icc-orange); border-left-color: var(--icc-orange); background: rgba(239, 108, 0, 0.05); }
+
+        main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .sub-header {
+            background: var(--card-bg); padding: 15px 30px; display: flex; 
+            justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);
+        }
+
+        .btn-add { 
+            background: var(--icc-green); color: white; border: none; padding: 10px 20px; 
+            border-radius: 10px; cursor: pointer; font-weight: 800; font-size: 13px;
+            display: flex; align-items: center; gap: 8px;
+        }
+
+        .view { flex: 1; padding: 20px; overflow-y: auto; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+
+        .card { 
+            background: var(--card-bg); border-radius: 20px; padding: 25px; 
+            box-shadow: 0 6px 15px rgba(0,0,0,0.05); border-top: 6px solid #ccc; 
+            position: relative;
+        }
+        .card h3 { font-size: 18px; margin-bottom: 12px; color: var(--text); font-weight: 800; }
+        .info { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--text); opacity: 0.8; margin-bottom: 6px; }
+        .info i { width: 18px; color: var(--icc-green); }
+
+        .status-pill {
+            display: inline-flex; align-items: center; gap: 6px; font-size: 11px; 
+            font-weight: 900; padding: 5px 12px; border-radius: 50px; margin-top: 10px; text-transform: uppercase;
+        }
+        .st-online { background: rgba(76, 175, 80, 0.1); color: var(--online); }
+        .st-offline { background: rgba(211, 47, 47, 0.1); color: var(--offline); }
+
+        .btn-edit { position: absolute; top: 20px; right: 20px; color: #aaa; cursor: pointer; font-size: 18px; }
+        .btn-edit:hover { color: var(--icc-orange); }
+
+        /* MODAL */
+        #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+        .modal-body { background: var(--card-bg); color: var(--text); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; }
+        .modal-body input, .modal-body select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 10px; font-size: 15px; background: var(--bg); color: var(--text); }
+        .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-ok { flex: 2; background: var(--icc-green); color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: bold; }
+        .btn-no { flex: 1; background: var(--border); color: var(--text); border: none; padding: 15px; border-radius: 10px; cursor: pointer; }
+
+        @media (max-width: 768px) {
+            .app-layout { flex-direction: column; }
+            aside { width: 100%; }
+            .btn-home { width: 120px; margin: 10px; }
+            .sidebar-menu { display: flex; overflow-x: auto; padding: 5px; }
+            .sidebar-item { white-space: nowrap; padding: 8px 15px; border: 1px solid var(--border); border-radius: 12px; margin: 5px; border-left: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <script>
+        if (localStorage.getItem('dark-mode') === 'true') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+
+    <div class="top-bar">
+        <div class="logo-section">
+            <img src="logo.png" alt="ICC" class="logo-img">
+            <h2 style="font-size: 18px; letter-spacing: 1px; margin: 0;">Gestão de Câmeras</h2>
+        </div>
+        <i class="fa-solid fa-microchip" style="font-size: 20px; opacity: 0.7;"></i>
+    </div>
+
+    <div class="app-layout">
+        <aside>
+            <a href="menu.html" class="btn-home">
+                <i class="fa-solid fa-chevron-left"></i> Voltar
+            </a>
+            
+            <div class="sidebar-menu">
+                <div class="sidebar-item active" onclick="filterUnit(event, 'all')"><i class="fa-solid fa-border-all"></i> Todas</div>
+                <div class="sidebar-item" onclick="filterUnit(event, 'Macatuba')"><i class="fa-solid fa-location-dot"></i> Macatuba</div>
+                <div class="sidebar-item" onclick="filterUnit(event, 'Jundiaí I')"><i class="fa-solid fa-location-dot"></i> Jundiaí I</div>
+                <div class="sidebar-item" onclick="filterUnit(event, 'Jundiaí II')"><i class="fa-solid fa-location-dot"></i> Jundiaí II</div>
+                <div class="sidebar-item" onclick="filterUnit(event, 'Matriz')"><i class="fa-solid fa-location-dot"></i> Matriz</div>
+            </div>
+        </aside>
+
+        <main>
+            <div class="sub-header">
+                <h2 id="unit-title" style="font-weight: 800; opacity: 0.8; font-size: 16px;">Todas Unidades</h2>
+                <button class="btn-add" onclick="openModal('add')">
+                    <i class="fa-solid fa-plus"></i> NOVA CÂMERA
+                </button>
+            </div>
+            <div class="view">
+                <div id="loading" style="text-align:center; color:#888; padding-top: 40px;">
+                    <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+                </div>
+                <div class="grid" id="camera-grid"></div>
+            </div>
+        </main>
+    </div>
+
+    <div id="modal">
+        <div class="modal-body">
+            <h3 id="modal-title" style="margin-bottom: 10px;">Nova Câmera</h3>
+            <input type="hidden" id="form-rowId">
+            <input type="text" id="form-nome" placeholder="Nome">
+            <input type="text" id="form-nvr" placeholder="NVR">
+            <input type="text" id="form-local" placeholder="Local">
+            <select id="form-unidade">
+                <option value="Macatuba">Macatuba</option>
+                <option value="Jundiaí I">Jundiaí I</option>
+                <option value="Jundiaí II">Jundiaí II</option>
+                <option value="Matriz">Matriz</option>
+            </select>
+            <select id="form-status">
+                <option value="online">Online</option>
+                <option value="offline">Offline</option>
+            </select>
+            <div class="modal-btns">
+                <button class="btn-no" onclick="closeModal()">SAIR</button>
+                <button class="btn-ok" id="btn-save" onclick="saveCamera()">SALVAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        if (sessionStorage.getItem('scd_auth') !== 'true') {
+            window.location.href = 'index.html';
+        }
+        const API_URL = "/api/proxy";
+        let cameras = [];
+        let currentUnit = 'all';
+
+        async function load() {
+            try {
+                const res = await fetch(API_URL);
+                cameras = await res.json();
+                document.getElementById('loading').style.display = 'none';
+                render();
+            } catch (e) { console.error(e); }
+        }
+
+        function filterUnit(e, unit) {
+            currentUnit = unit;
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            document.getElementById('unit-title').innerText = unit === 'all' ? 'Todas Unidades' : unit;
+            render();
+        }
+
+        function render() {
+            const grid = document.getElementById('camera-grid');
+            grid.innerHTML = '';
+            const filtered = currentUnit === 'all' ? cameras : cameras.filter(c => c.unidade === currentUnit);
+            
+            filtered.forEach(c => {
+                const isOn = c.status.toLowerCase() === 'online';
+                grid.innerHTML += `
+                    <div class="card" style="border-top-color: ${isOn ? 'var(--online)' : 'var(--offline)'}">
+                        <h3>${c.nome}</h3>
+                        <div class="info"><i class="fa-solid fa-server"></i> <b>NVR:</b> ${c.nvr}</div>
+                        <div class="info"><i class="fa-solid fa-map-pin"></i> <b>Local:</b> ${c.local}</div>
+                        <div class="info"><i class="fa-solid fa-building"></i> <b>Unid:</b> ${c.unidade}</div>
+                        <span class="status-pill ${isOn ? 'st-online' : 'st-offline'}">
+                            <i class="fa-solid ${isOn ? 'fa-check-circle' : 'fa-times-circle'}"></i> ${c.status}
+                        </span>
+                        <div class="btn-edit" onclick='openModal("edit", ${JSON.stringify(c)})'>
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function openModal(mode, data = null) {
+            document.getElementById('modal').style.display = 'flex';
+            if(mode === 'edit') {
+                document.getElementById('modal-title').innerText = "Editar Ativo";
+                document.getElementById('form-rowId').value = data.rowId;
+                document.getElementById('form-nome').value = data.nome;
+                document.getElementById('form-nvr').value = data.nvr;
+                document.getElementById('form-local').value = data.local;
+                document.getElementById('form-unidade').value = data.unidade;
+                document.getElementById('form-status').value = data.status;
+            } else {
+                document.getElementById('modal-title').innerText = "Nova Câmera";
+                document.querySelectorAll('.modal-body input').forEach(i => i.value = "");
+            }
+        }
+
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
+        async function saveCamera() {
+            const btn = document.getElementById('btn-save');
+            btn.disabled = true; btn.innerText = "SALVANDO...";
+            const payload = {
+                acao: document.getElementById('form-rowId').value ? 'edit' : 'add',
+                rowId: document.getElementById('form-rowId').value,
+                nome: document.getElementById('form-nome').value,
+                nvr: document.getElementById('form-nvr').value,
+                local: document.getElementById('form-local').value,
+                unidade: document.getElementById('form-unidade').value,
+                status: document.getElementById('form-status').value
+            };
+            await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+            location.reload();
+        }
+        load();
+    </script>
+</body>
+</html>
