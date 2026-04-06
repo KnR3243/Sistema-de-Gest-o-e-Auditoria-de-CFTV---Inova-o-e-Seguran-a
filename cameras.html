@@ -267,7 +267,11 @@
                 unidade: document.getElementById('form-unidade').value,
                 status: document.getElementById('form-status').value
             };
-            await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+            await fetch(API_URL, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, // <-- ADICIONE O HEADERS AQUI TAMBÉM
+                body: JSON.stringify(payload) 
+            });
             location.reload();
         }
         load();

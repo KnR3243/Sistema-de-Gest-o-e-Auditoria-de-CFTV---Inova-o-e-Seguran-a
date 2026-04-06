@@ -609,10 +609,9 @@
             try {
                 let response = await fetch(API_URL, {
                     method: 'POST',
-                    headers: { "Content-Type": "text/plain;charset=utf-8" },
+                    headers: { 'Content-Type': 'application/json' }, // <-- MUDE PARA application/json
                     body: JSON.stringify(payloadDB)
                 });
-                
                 let result = await response.json();
                 
                 if(result.sucesso) {

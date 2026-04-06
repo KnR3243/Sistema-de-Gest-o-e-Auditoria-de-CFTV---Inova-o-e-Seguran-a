@@ -124,9 +124,9 @@
             try {
                 const response = await fetch(API_URL, {
                     method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }, // <-- ADICIONE ESSA LINHA!
                     body: JSON.stringify(payload)
                 });
-
                 const data = await response.json();
 
                 if (data.sucesso) {
