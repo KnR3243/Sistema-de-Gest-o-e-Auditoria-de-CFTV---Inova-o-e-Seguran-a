@@ -110,11 +110,19 @@
         .btn-no { flex: 1; background: var(--border); color: var(--text); border: none; padding: 15px; border-radius: 10px; cursor: pointer; }
 
         @media (max-width: 768px) {
-            .app-layout { flex-direction: column; }
-            aside { width: 100%; }
-            .btn-home { width: 120px; margin: 10px; }
-            .sidebar-menu { display: flex; overflow-x: auto; padding: 5px; }
-            .sidebar-item { white-space: nowrap; padding: 8px 15px; border: 1px solid var(--border); border-radius: 12px; margin: 5px; border-left: none; }
+            body { height: auto; min-height: 100vh; overflow: auto; }
+            .app-layout { flex-direction: column; overflow: visible; }
+            
+            aside { width: 100%; flex-direction: row; border-right: none; border-bottom: 1px solid var(--border); align-items: center; padding: 5px 10px; overflow-x: auto; }
+            .btn-home { width: auto; padding: 10px 15px; margin: 0 15px 0 0; white-space: nowrap; font-size: 0; box-shadow: none; }
+            .btn-home i { font-size: 16px; margin: 0; }
+            
+            .sidebar-menu { display: flex; flex-direction: row; align-items: center; padding: 5px; }
+            .sidebar-item { padding: 10px 15px; white-space: nowrap; border-left: none; border-bottom: 3px solid transparent; border-radius: 8px 8px 0 0; margin: 0; }
+            .sidebar-item.active { border-left: none; border-bottom: 3px solid var(--icc-orange); background: transparent; color: var(--icc-orange); }
+
+            main { overflow: visible; flex: unset; }
+            .view { overflow: visible; padding-bottom: 50px; }
         }
     </style>
 </head>
