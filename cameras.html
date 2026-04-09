@@ -101,7 +101,7 @@
         .btn-edit { position: absolute; top: 20px; right: 20px; color: #aaa; cursor: pointer; font-size: 18px; }
         .btn-edit:hover { color: var(--icc-orange); }
 
-        /* MODAL */
+
         #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
         .modal-body { background: var(--card-bg); color: var(--text); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; }
         .modal-body input, .modal-body select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid var(--border); border-radius: 10px; font-size: 15px; background: var(--bg); color: var(--text); }
@@ -192,6 +192,7 @@
             </select>
             <div class="modal-btns">
                 <button class="btn-no" onclick="closeModal()">SAIR</button>
+                <button class="btn-ok" id="btn-delete" onclick="deleteCamera()" style="display:none; background: #ef4444;">EXCLUIR</button>
                 <button class="btn-ok" id="btn-save" onclick="saveCamera()">SALVAR</button>
             </div>
         </div>
@@ -207,7 +208,6 @@
 
         async function load() {
             try {
-                // AQUI ESTÁ A CORREÇÃO: Enviando a ação para buscar as câmeras
                 const res = await fetch(API_URL + "?acao=getCameras");
                 cameras = await res.json();
                 document.getElementById('loading').style.display = 'none';
@@ -229,7 +229,6 @@
             const filtered = currentUnit === 'all' ? cameras : cameras.filter(c => c.unidade === currentUnit);
             
             filtered.forEach(c => {
-                // Previne erro caso o status venha nulo da planilha
                 const statusTexto = c.status || 'online';
                 const isOn = statusTexto.toLowerCase() === 'online';
                 
@@ -252,20 +251,44 @@
         function openModal(mode, data = null) {
             document.getElementById('modal').style.display = 'flex';
             if(mode === 'edit') {
-                document.getElementById('modal-title').innerText = "Editar Ativo";
+                document.getElementById('modal-title').innerText = "Editar Câmera";
                 document.getElementById('form-rowId').value = data.rowId;
                 document.getElementById('form-nome').value = data.nome;
                 document.getElementById('form-nvr').value = data.nvr;
                 document.getElementById('form-local').value = data.local;
                 document.getElementById('form-unidade').value = data.unidade;
-                document.getElementById('form-status').value = data.status;
+                document.getElementById('form-status').value = data.status || 'online';
+                
+                document.getElementById('btn-delete').style.display = 'block'; 
             } else {
                 document.getElementById('modal-title').innerText = "Nova Câmera";
                 document.querySelectorAll('.modal-body input').forEach(i => i.value = "");
+                document.getElementById('form-status').value = "online";
+
+                document.getElementById('btn-delete').style.display = 'none'; 
             }
         }
 
         function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
+        async function deleteCamera() {
+            if(!confirm("Tem certeza que deseja EXCLUIR esta câmera? Esta ação não pode ser desfeita.")) return;
+            
+            const btn = document.getElementById('btn-delete');
+            btn.disabled = true; btn.innerText = "EXCLUINDO...";
+            
+            const payload = {
+                acao: 'delete',
+                rowId: document.getElementById('form-rowId').value
+            };
+            
+            await fetch(API_URL, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify(payload) 
+            });
+            location.reload();
+        }
 
         async function saveCamera() {
             const btn = document.getElementById('btn-save');
