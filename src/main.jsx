@@ -243,7 +243,9 @@ function ReportPage({ cameras, query, apiStatus }) {
                 ocorrencias: rows.filter((row) => row.status !== "OK").map((row) => `${row.camera} (${formatRowDetails(row)})`).join(" | ") || "100% OK",
                 observacoes: rows.filter((row) => row.note).map((row) => `${row.camera}: ${row.note}`).join(" | "),
                 htmlTabelaCameras: buildApiHtml(rows),
-                assinaturaB64: signature
+                assinaturaB64: signature,
+                linhaAssinatura: false,
+                exibirLinhaAssinatura: false
             }
         };
     }

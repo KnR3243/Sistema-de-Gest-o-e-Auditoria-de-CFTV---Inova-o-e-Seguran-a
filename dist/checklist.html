@@ -298,7 +298,7 @@
                         <b>Detalhamento de Registros e Ocorrências</b> 
                         <div id="prev-falhas" style="margin-top: 15px;"></div>
                     </div>
-                    <div class="preview-item" style="border: none; display: block; margin-top: 10px; border-top: 1px dashed var(--border); padding-top: 20px;">
+                    <div class="preview-item" style="border: none; display: block; margin-top: 10px; padding-top: 20px;">
                         <b>Assinatura Registrada</b>
                         <img id="prev-assinatura-img" src="" style="background: white; height: 100px; border-radius: 10px; padding: 5px; margin-top: 10px; border: 2px solid var(--border);">
                     </div>
@@ -711,6 +711,8 @@
                 ocorrencias: falhasDB.length > 0 ? falhasDB.join(' | ') : "100% OK",
                 htmlTabelaCameras: htmlTabelaPDF,
                 assinaturaB64: canvas.toDataURL(),
+                linhaAssinatura: false,
+                exibirLinhaAssinatura: false,
                 enviarEmail: enviarEmail,
                 emailResponsavel: emailResp
             };
