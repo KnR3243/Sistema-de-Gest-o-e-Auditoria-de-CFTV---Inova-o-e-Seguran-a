@@ -138,10 +138,13 @@
         .segment-sim:has(input:checked) { background: var(--icc-orange); border-color: var(--icc-orange); color: white; }
         .segment-nao:has(input:checked) { background: #6b7280; border-color: #6b7280; color: white; }
 
-        .camera-body select { 
+        .camera-body select,
+        .camera-body textarea { 
             width: 100%; padding: 14px; border: 1px solid var(--border); border-radius: 10px; 
-            background: var(--card-bg); color: var(--text); font-size: 14px; font-weight: 600; outline: none; cursor: pointer;
+            background: var(--card-bg); color: var(--text); font-size: 14px; font-weight: 600; outline: none;
         }
+        .camera-body select { cursor: pointer; }
+        .camera-body textarea { min-height: 92px; resize: vertical; line-height: 1.45; font-weight: 500; }
         
         .upload-wrapper { display: flex; gap: 15px; align-items: center; }
         .upload-btn { 
@@ -431,8 +434,12 @@
                                         <option value="">Selecione...</option>
                                         <option value="Cabo reconectado / Limpeza">Cabo reconectado / Limpeza</option>
                                         <option value="Aguardando Manutenção Externa">Aguardando Manutenção Externa</option>
-                                        <option value="Solicitada Substituição (Queimada)">Solicitada Substituição (Queimada)</option>
+                                        <option value="Substituição">Substituição</option>
                                     </select>
+                                </div>
+                                <div class="form-group-cam" id="bloco_obs_${idx}" style="display: none;">
+                                    <label>Observações</label>
+                                    <textarea name="obs_${idx}" rows="3" placeholder="Descreva detalhes da ocorrência"></textarea>
                                 </div>
                                 <div class="form-group-cam" id="bloco_foto_${idx}">
                                     <label>Evidência Visual (Opcional para OK)</label>
@@ -463,6 +470,7 @@
             const isFalha = radio.value === 'Falha';
             document.getElementById(`bloco_tratativa_${index}`).style.display = isFalha ? 'block' : 'none';
             document.getElementById(`bloco_desc_${index}`).style.display = isFalha ? 'block' : 'none';
+            document.getElementById(`bloco_obs_${index}`).style.display = isFalha ? 'block' : 'none';
             
             const header = radio.closest('.camera-card').querySelector('.camera-header');
             const badge = header.querySelector('.status-badge');
@@ -611,13 +619,17 @@
                     if(statusInput.value === 'Falha') {
                         const tratativa = card.querySelector(`input[name="tratativa_${gIdx}"]:checked`).value;
                         const acao = card.querySelector(`select[name="desc_${gIdx}"]`).value;
+                        const observacao = card.querySelector(`textarea[name="obs_${gIdx}"]`).value.trim();
                         const acaoSeguro = SCD.escapeHTML(acao);
+                        const observacaoSeguro = SCD.escapeHTML(observacao);
+                        const detalheAcaoPDF = `${acaoSeguro || 'Tratativa pendente'}${observacaoSeguro ? `<br><span style="color:#555;"><b>Obs.:</b> ${observacaoSeguro}</span>` : ''}`;
                         reportRowsLocal.push({
                             camera: camNome,
                             nvr: nvrNome,
                             local: nvrNome,
                             status: 'FALHA',
-                            action: acao || 'Tratativa pendente'
+                            action: acao || 'Tratativa pendente',
+                            note: observacao
                         });
 
                         let alertaAcao = "";
@@ -633,12 +645,13 @@
                                     <div style="margin-top: 8px; font-size: 13px; color: var(--text);">
                                         <b>Ação:</b> ${acaoSeguro || '<i>Nenhuma</i>'} ${alertaAcao}
                                     </div>
+                                    ${observacaoSeguro ? `<div style="margin-top: 8px; font-size: 13px; color: var(--text);"><b>Observações:</b> ${observacaoSeguro}</div>` : ''}
                                 </div>
                                 ${fotoImgTag}
                             </div>`;
                         
-                        htmlTabelaPDF += `<tr><td style="border: 1px solid #333; padding: 8px; font-weight:bold;">${camNomeSeguro}</td><td style="border: 1px solid #333; padding: 8px; color:red; font-weight:bold; text-align:center;">FALHA</td><td style="border: 1px solid #333; padding: 8px;">${acaoSeguro}</td><td style="border: 1px solid #333; padding: 0; text-align:center; vertical-align:middle;">${fotoPdfTag}</td></tr>`;
-                        falhasDB.push(`${camNome} (${acao})`);
+                        htmlTabelaPDF += `<tr><td style="border: 1px solid #333; padding: 8px; font-weight:bold;">${camNomeSeguro}</td><td style="border: 1px solid #333; padding: 8px; color:red; font-weight:bold; text-align:center;">FALHA</td><td style="border: 1px solid #333; padding: 8px;">${detalheAcaoPDF}</td><td style="border: 1px solid #333; padding: 0; text-align:center; vertical-align:middle;">${fotoPdfTag}</td></tr>`;
+                        falhasDB.push(`${camNome} (${acao || 'Tratativa pendente'}${observacao ? ` - Obs.: ${observacao}` : ''})`);
                     
                     } else { 
                         const msgOk = "Câmera operante / OK";
@@ -647,7 +660,8 @@
                             nvr: nvrNome,
                             local: nvrNome,
                             status: 'OK',
-                            action: msgOk
+                            action: msgOk,
+                            note: ''
                         });
                         
                         if (temFoto) {

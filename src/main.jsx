@@ -17,7 +17,7 @@ const LOCATIONS = [
 const ACTION_OPTIONS = [
     "Cabo reconectado / limpeza realizada",
     "Aguardando manutencao externa",
-    "Solicitada substituicao da camera",
+    "Substituição",
     "NVR reiniciado e monitorado",
     "Ocorrencia encaminhada para TI"
 ];
@@ -217,7 +217,7 @@ function ReportPage({ cameras, query, apiStatus }) {
                 ip: camera.ip,
                 patrimonio: camera.patrimonio,
                 status: entry.status || "OK",
-                action: entry.status === "OK" ? "Camera operante / OK" : entry.action || entry.note || "Tratativa pendente",
+                action: entry.status === "OK" ? "Camera operante / OK" : entry.action || "Tratativa pendente",
                 note: entry.note || "",
                 photo: entry.photo || ""
             };
@@ -240,7 +240,8 @@ function ReportPage({ cameras, query, apiStatus }) {
                 responsavel: responsible,
                 unidade: unit,
                 turno: shift,
-                ocorrencias: rows.filter((row) => row.status !== "OK").map((row) => `${row.camera} (${row.action})`).join(" | ") || "100% OK",
+                ocorrencias: rows.filter((row) => row.status !== "OK").map((row) => `${row.camera} (${formatRowDetails(row)})`).join(" | ") || "100% OK",
+                observacoes: rows.filter((row) => row.note).map((row) => `${row.camera}: ${row.note}`).join(" | "),
                 htmlTabelaCameras: buildApiHtml(rows),
                 assinaturaB64: signature
             }
@@ -338,7 +339,7 @@ function ReportPage({ cameras, query, apiStatus }) {
                                             <option value="">Tratativa</option>
                                             {ACTION_OPTIONS.map((action) => <option key={action}>{action}</option>)}
                                         </select>
-                                        <input value={entry.note || ""} onChange={(event) => updateEntry(camera, { note: event.target.value })} placeholder="Observacao" />
+                                        <textarea value={entry.note || ""} onChange={(event) => updateEntry(camera, { note: event.target.value })} placeholder="Observações" aria-label={`Observações de ${camera.nome}`} rows={2} />
                                         <label className="file-action">
                                             <input type="file" accept="image/*" onChange={(event) => attachPhoto(camera, event.target.files?.[0])} />
                                             <Icon name="camera" />
@@ -501,7 +502,7 @@ function ReportPreview({ report }) {
             <div className="preview-table">
                 <table>
                     <thead><tr><th>Camera</th><th>NVR</th><th>Local</th><th>Status</th><th>Tratativa / observacao</th></tr></thead>
-                    <tbody>{report.rows.map((row) => <tr key={`${row.camera}-${row.local}`}><td>{row.camera}</td><td>{row.nvr}</td><td>{row.local}</td><td>{row.status}</td><td>{row.action}</td></tr>)}</tbody>
+                    <tbody>{report.rows.map((row) => <tr key={`${row.camera}-${row.local}`}><td>{row.camera}</td><td>{row.nvr}</td><td>{row.local}</td><td>{row.status}</td><td>{formatRowDetails(row)}</td></tr>)}</tbody>
                 </table>
             </div>
         </section>
@@ -576,7 +577,7 @@ function openPrintableReport(report) {
 }
 
 function buildPrintableHtml(report) {
-    return `<!doctype html><html><head><title>Relatorio de Cameras</title><style>body{font-family:Arial,sans-serif;color:#1f2937;margin:32px}h1{font-size:20px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #999;padding:7px;text-align:left}th{background:#e5e7eb}.bad{color:#b91c1c;font-weight:bold}.ok{color:#166534;font-weight:bold}</style></head><body><h1>Relatorio de Cameras - ICC Brazil</h1><p>${escapeHtml(report.info.unit)} - ${escapeHtml(report.info.date)} ${escapeHtml(report.info.time)} - Responsavel: ${escapeHtml(report.info.responsible)}</p><table><thead><tr><th>Camera</th><th>NVR</th><th>Local</th><th>Status</th><th>Tratativa</th></tr></thead><tbody>${report.rows.map((row) => `<tr><td>${escapeHtml(row.camera)}</td><td>${escapeHtml(row.nvr)}</td><td>${escapeHtml(row.local)}</td><td class="${row.status === "OK" ? "ok" : "bad"}">${escapeHtml(row.status)}</td><td>${escapeHtml(row.action)}</td></tr>`).join("")}</tbody></table></body></html>`;
+    return `<!doctype html><html><head><title>Relatorio de Cameras</title><style>body{font-family:Arial,sans-serif;color:#1f2937;margin:32px}h1{font-size:20px}table{width:100%;border-collapse:collapse;font-size:11px}th,td{border:1px solid #999;padding:7px;text-align:left}th{background:#e5e7eb}.bad{color:#b91c1c;font-weight:bold}.ok{color:#166534;font-weight:bold}</style></head><body><h1>Relatorio de Cameras - ICC Brazil</h1><p>${escapeHtml(report.info.unit)} - ${escapeHtml(report.info.date)} ${escapeHtml(report.info.time)} - Responsavel: ${escapeHtml(report.info.responsible)}</p><table><thead><tr><th>Camera</th><th>NVR</th><th>Local</th><th>Status</th><th>Tratativa / Observacoes</th></tr></thead><tbody>${report.rows.map((row) => `<tr><td>${escapeHtml(row.camera)}</td><td>${escapeHtml(row.nvr)}</td><td>${escapeHtml(row.local)}</td><td class="${row.status === "OK" ? "ok" : "bad"}">${escapeHtml(row.status)}</td><td>${escapeHtml(formatRowDetails(row))}</td></tr>`).join("")}</tbody></table></body></html>`;
 }
 
 function buildApiHtml(rows) {
@@ -585,7 +586,11 @@ function buildApiHtml(rows) {
         map[row.nvr].push(row);
         return map;
     }, {});
-    return Object.entries(groups).map(([nvr, items]) => `<div style="background:#2e7d32;color:#fff;padding:6px 10px;font-weight:bold">${escapeHtml(nvr)}</div><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr><th style="border:1px solid #333;padding:6px">Camera</th><th style="border:1px solid #333;padding:6px">Status</th><th style="border:1px solid #333;padding:6px">Tratativa</th></tr></thead><tbody>${items.map((row) => `<tr><td style="border:1px solid #333;padding:6px">${escapeHtml(row.camera)} - ${escapeHtml(row.local)}</td><td style="border:1px solid #333;padding:6px">${escapeHtml(row.status)}</td><td style="border:1px solid #333;padding:6px">${escapeHtml(row.action)}</td></tr>`).join("")}</tbody></table>`).join("");
+    return Object.entries(groups).map(([nvr, items]) => `<div style="background:#2e7d32;color:#fff;padding:6px 10px;font-weight:bold">${escapeHtml(nvr)}</div><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr><th style="border:1px solid #333;padding:6px">Camera</th><th style="border:1px solid #333;padding:6px">Status</th><th style="border:1px solid #333;padding:6px">Tratativa / Observacoes</th></tr></thead><tbody>${items.map((row) => `<tr><td style="border:1px solid #333;padding:6px">${escapeHtml(row.camera)} - ${escapeHtml(row.local)}</td><td style="border:1px solid #333;padding:6px">${escapeHtml(row.status)}</td><td style="border:1px solid #333;padding:6px">${escapeHtml(formatRowDetails(row))}</td></tr>`).join("")}</tbody></table>`).join("");
+}
+
+function formatRowDetails(row) {
+    return [row.action || "", row.note ? `Obs.: ${row.note}` : ""].filter(Boolean).join(" | ") || "-";
 }
 
 function normalizeCamera(camera, index) {

@@ -549,6 +549,28 @@ button:disabled {
     border-radius: 8px;
 }
 
+.camera-row select,
+.camera-row textarea {
+    width: 100%;
+    min-width: 0;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #ffffff;
+    color: var(--text);
+}
+
+.camera-row select {
+    min-height: 44px;
+    padding: 0 12px;
+}
+
+.camera-row textarea {
+    min-height: 54px;
+    padding: 10px 12px;
+    line-height: 1.35;
+    resize: vertical;
+}
+
 .camera-row.offline {
     background: var(--danger-soft);
     border-color: #dfaaa4;
@@ -1275,6 +1297,7 @@ body.dark .search input {
 
 body.dark input,
 body.dark select,
+body.dark textarea,
 body.dark .field-line,
 body.dark .modal-actions button,
 body.dark .icon-btn,
@@ -1286,6 +1309,7 @@ body.dark .row-actions button,
 body.dark .row-actions a,
 body.dark .modal input,
 body.dark .modal select,
+body.dark .camera-row textarea,
 body.dark .nvr-panel {
     background: #111b15;
     color: var(--text);

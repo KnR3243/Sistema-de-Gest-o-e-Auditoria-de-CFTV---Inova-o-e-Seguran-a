@@ -47,16 +47,15 @@ function buildPages(report = {}) {
         y -= 16;
         addText(content, 42, y, 10, `Resumo: ${totals.ok || 0} OK | ${totals.fail || 0} falha(s) | ${totals.maintenance || 0} manutencao`);
         y -= 24;
-        addText(content, 42, y, 10, "Camera                         NVR       Local                         Status       Tratativa");
-        y -= 10;
-        content.push("42 " + y + " m 553 " + y + " l S");
+        addText(content, 42, y, 10, "Camera                         NVR       Local                         Status       Tratativa / Observacao");
         y -= 18;
     }
 
     newPage();
 
     rows.forEach((row) => {
-        const firstLine = `${row.camera || "-"} | ${row.nvr || "-"} | ${row.local || "-"} | ${row.status || "-"} | ${row.action || "-"}`;
+        const details = [row.action || "", row.note ? `Obs.: ${row.note}` : ""].filter(Boolean).join(" | ") || "-";
+        const firstLine = `${row.camera || "-"} | ${row.nvr || "-"} | ${row.local || "-"} | ${row.status || "-"} | ${details}`;
         const wrapped = splitText(firstLine, 95);
         if (y - wrapped.length * 14 < 54) newPage();
         wrapped.forEach((line) => {
