@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { proxyRequest } from "./api/proxy-core.js";
 import { createReportPdf } from "./api/report-pdf.js";
 import { snmpMonitorRequest } from "./api/snmp-monitor.js";
+import { networkAccess, reportAccessError } from "./api/network-access.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,6 +50,10 @@ const contentTypes = {
     ".ico": "image/x-icon",
     ".svg": "image/svg+xml"
 };
+
+function remoteAddress(req) {
+    return req.socket?.remoteAddress || "";
+}
 
 function sendJson(res, status, body, headers = {}) {
     res.writeHead(status, {
@@ -116,6 +121,10 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname === "/api/proxy") {
         try {
             const body = req.method === "POST" ? await readBody(req) : {};
+            if (req.method === "POST" && body?.acao === "add_checklist" && !networkAccess(remoteAddress(req)).allowed) {
+                sendJson(res, 403, reportAccessError(remoteAddress(req)));
+                return;
+            }
             const result = await proxyRequest({
                 method: req.method,
                 query: url.searchParams,
@@ -130,6 +139,10 @@ const server = http.createServer(async (req, res) => {
 
     if (url.pathname === "/api/report-pdf" && req.method === "POST") {
         try {
+            if (!networkAccess(remoteAddress(req)).allowed) {
+                sendJson(res, 403, reportAccessError(remoteAddress(req)));
+                return;
+            }
             const body = await readBody(req);
             const pdf = createReportPdf(body);
             const filename = `relatorio-cameras-${Date.now()}.pdf`;
@@ -142,6 +155,11 @@ const server = http.createServer(async (req, res) => {
         } catch (error) {
             sendJson(res, 400, { error: error.message || "Nao foi possivel gerar o PDF." });
         }
+        return;
+    }
+
+    if (url.pathname === "/api/network-access" && req.method === "GET") {
+        sendJson(res, 200, networkAccess(remoteAddress(req)), { "Cache-Control": "no-store" });
         return;
     }
 
