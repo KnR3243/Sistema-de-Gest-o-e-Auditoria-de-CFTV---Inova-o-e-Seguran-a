@@ -331,3 +331,16 @@ export async function snmpMonitorRequest() {
         return { status: 200, headers: { "Cache-Control": "no-store" }, body: { checkedAt: new Date().toISOString(), online: false, error: error.message || "Não foi possível consultar o NVR.", cameras: [] } };
     }
 }
+
+// Adaptador para Vercel Serverless Functions. O servidor local utiliza a
+// exportação nomeada acima; o Vercel exige uma exportação padrão por arquivo
+// dentro de /api.
+export default async function handler(req, res) {
+    if (req.method !== "POST") {
+        return res.status(405).json({ error: "Método não permitido." });
+    }
+
+    const result = await snmpMonitorRequest({ body: req.body });
+    Object.entries(result.headers || {}).forEach(([key, value]) => res.setHeader(key, value));
+    return res.status(result.status).json(result.body);
+}
