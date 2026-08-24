@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { proxyRequest } from "./api/proxy-core.js";
 import { createReportPdf } from "./api/report-pdf.js";
+import { snmpMonitorRequest } from "./api/snmp-monitor.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -140,6 +141,17 @@ const server = http.createServer(async (req, res) => {
             res.end(pdf);
         } catch (error) {
             sendJson(res, 400, { error: error.message || "Nao foi possivel gerar o PDF." });
+        }
+        return;
+    }
+
+    if (url.pathname === "/api/snmp-monitor" && req.method === "POST") {
+        try {
+            const body = await readBody(req);
+            const result = await snmpMonitorRequest({ body });
+            sendJson(res, result.status, result.body, result.headers);
+        } catch (error) {
+            sendJson(res, 400, { error: error.message || "Nao foi possivel consultar o NVR." });
         }
         return;
     }

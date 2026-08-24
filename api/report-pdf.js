@@ -33,6 +33,7 @@ function buildPages(report = {}) {
     const rows = Array.isArray(report.rows) ? report.rows : [];
     const info = report.info || {};
     const totals = report.totals || {};
+    const snmpSummary = report.snmp?.summary || report.snmpSummary || "";
     const pages = [];
     let content = [];
     let y = 800;
@@ -46,6 +47,13 @@ function buildPages(report = {}) {
         addText(content, 42, y, 10, `Unidade: ${info.unit || "-"}    Data: ${info.date || "-"} ${info.time || ""}    Responsavel: ${info.responsible || "-"}`);
         y -= 16;
         addText(content, 42, y, 10, `Resumo: ${totals.ok || 0} OK | ${totals.fail || 0} falha(s) | ${totals.maintenance || 0} manutencao`);
+        if (snmpSummary) {
+            y -= 16;
+            splitText(`SNMP: ${snmpSummary}`, 105).forEach((line) => {
+                addText(content, 42, y, 9, line);
+                y -= 12;
+            });
+        }
         y -= 24;
         addText(content, 42, y, 10, "Camera                         NVR       Local                         Status       Tratativa / Observacao");
         y -= 18;

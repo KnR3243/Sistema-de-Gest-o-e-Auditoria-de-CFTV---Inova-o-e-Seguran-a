@@ -80,6 +80,11 @@
             border-radius: 10px; cursor: pointer; font-weight: 800; font-size: 13px;
             display: flex; align-items: center; gap: 8px;
         }
+        .header-actions { display: flex; align-items: center; gap: 10px; }
+        .btn-bulk { background: transparent; color: var(--icc-green); border: 1px solid var(--icc-green); padding: 10px 14px; border-radius: 10px; cursor: pointer; font-weight: 800; font-size: 13px; }
+        .bulk-camera-list { max-height: 290px; overflow-y: auto; border: 1px solid var(--border); border-radius: 10px; margin-top: 12px; }
+        .bulk-camera-option { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 13px; font-weight: 700; }
+        .bulk-camera-option:last-child { border-bottom: 0; }
 
         .view { flex: 1; padding: 20px; overflow-y: auto; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
@@ -99,6 +104,11 @@
         }
         .st-online { background: rgba(76, 175, 80, 0.1); color: var(--online); }
         .st-offline { background: rgba(211, 47, 47, 0.1); color: var(--offline); }
+        .st-unknown { background: rgba(107, 114, 128, 0.12); color: #6b7280; }
+        .monitor-summary { display: flex; align-items: center; gap: 10px; margin: 0 20px 16px; padding: 12px 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--card-bg); font-size: 13px; font-weight: 700; }
+        .monitor-summary i { color: var(--icc-green); }
+        .monitor-summary.is-offline i { color: var(--offline); }
+        .camera-bandwidth { color: var(--icc-green); font-weight: 800; }
 
         .btn-edit { position: absolute; top: 20px; right: 20px; color: #aaa; cursor: pointer; font-size: 18px; }
         .btn-edit:hover { color: var(--icc-orange); }
@@ -110,6 +120,40 @@
         .modal-btns { display: flex; gap: 10px; margin-top: 20px; }
         .btn-ok { flex: 2; background: var(--icc-green); color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: bold; }
         .btn-no { flex: 1; background: var(--border); color: var(--text); border: none; padding: 15px; border-radius: 10px; cursor: pointer; }
+
+        #camera-details-modal { display: none; position: fixed; inset: 0; z-index: 1100; align-items: center; justify-content: center; padding: 22px; background: rgba(10, 24, 18, 0.64); backdrop-filter: blur(8px); }
+        .camera-details-panel { width: min(100%, 620px); max-height: min(780px, calc(100vh - 44px)); overflow-y: auto; color: var(--text); background: var(--card-bg); border: 1px solid rgba(255,255,255,.32); border-radius: 24px; box-shadow: 0 28px 70px rgba(0,0,0,.28); }
+        .camera-details-hero { position: relative; padding: 28px 30px 26px; color: #fff; overflow: hidden; background: linear-gradient(135deg, #1f6231, #2e7d32 58%, #54a05b); }
+        .camera-details-hero.is-offline { background: linear-gradient(135deg, #8d2a2a, #c43e38 58%, #dd7064); }
+        .camera-details-hero.is-unknown { background: linear-gradient(135deg, #475569, #64748b 58%, #8795a8); }
+        .camera-details-hero::after { content: ''; position: absolute; width: 220px; height: 220px; right: -72px; top: -100px; border: 28px solid rgba(255,255,255,.1); border-radius: 50%; }
+        .camera-details-close { position: absolute; z-index: 1; top: 18px; right: 18px; width: 38px; height: 38px; border: 0; border-radius: 50%; color: #fff; background: rgba(255,255,255,.17); cursor: pointer; font-size: 16px; }
+        .camera-details-close:hover { background: rgba(255,255,255,.28); }
+        .camera-details-kicker { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; color: rgba(255,255,255,.76); font-size: 11px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+        .camera-details-name { position: relative; z-index: 1; max-width: calc(100% - 48px); font-size: clamp(22px, 4vw, 30px); line-height: 1.15; font-weight: 850; }
+        .camera-details-location { position: relative; z-index: 1; display: flex; align-items: center; gap: 8px; margin-top: 10px; color: rgba(255,255,255,.86); font-size: 14px; font-weight: 650; }
+        .camera-details-state { position: relative; z-index: 1; display: inline-flex; align-items: center; gap: 8px; margin-top: 20px; padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,.16); font-size: 12px; font-weight: 850; }
+        .camera-details-content { padding: 24px 30px 28px; }
+        .camera-details-section-title { display: flex; align-items: center; gap: 9px; margin-bottom: 14px; color: var(--text); font-size: 13px; font-weight: 850; letter-spacing: .04em; text-transform: uppercase; }
+        .camera-details-section-title i { color: var(--icc-green); }
+        .camera-details-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+        .camera-detail-item { min-width: 0; padding: 14px; border: 1px solid var(--border); border-radius: 14px; background: var(--bg); }
+        .camera-detail-label { display: flex; align-items: center; gap: 7px; margin-bottom: 7px; color: #718078; font-size: 11px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+        .camera-detail-label i { color: var(--icc-green); }
+        .camera-detail-value { overflow-wrap: anywhere; color: var(--text); font-size: 15px; font-weight: 800; }
+        .camera-detail-value.is-ip { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 14px; }
+        .camera-details-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+        .camera-details-edit { border: 0; border-radius: 10px; padding: 12px 16px; color: #fff; background: var(--icc-green); cursor: pointer; font-size: 13px; font-weight: 800; }
+        .camera-details-edit i { margin-right: 7px; }
+        .camera-row { cursor: pointer; }
+        .camera-row:focus-visible { outline: 3px solid rgba(46,125,50,.34); outline-offset: 2px; }
+
+        @media (max-width: 520px) {
+            #camera-details-modal { padding: 12px; }
+            .camera-details-hero { padding: 24px 22px 22px; }
+            .camera-details-content { padding: 20px 22px 24px; }
+            .camera-details-grid { grid-template-columns: 1fr; }
+        }
 
         @media (max-width: 768px) {
             body { height: auto; min-height: 100vh; overflow: auto; }
@@ -127,7 +171,7 @@
             .view { overflow: visible; padding-bottom: 50px; }
         }
     </style>
-    <link rel="stylesheet" href="assets/css/ui.css?v=1.10.2">
+    <link rel="stylesheet" href="assets/css/ui.css?v=1.10.5">
 </head>
 <body>
 
@@ -162,13 +206,17 @@
         <main>
             <div class="sub-header">
                 <h2 id="unit-title" style="font-weight: 800; opacity: 0.8; font-size: 16px;">Todas Unidades</h2>
-                <button class="btn-add" onclick="openModal('add')">
-                    <i class="fa-solid fa-plus"></i> NOVA CÂMERA
-                </button>
+                <div class="header-actions">
+                    <button class="btn-add" onclick="openModal('add')">
+                        <i class="fa-solid fa-plus"></i> NOVA CÂMERA
+                    </button>
+                </div>
             </div>
             <div class="view">
-                <div id="loading" style="text-align:center; color:#888; padding-top: 40px;">
-                    <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+                <div id="monitor-summary" class="monitor-summary is-loading"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Atualizando status dos NVRs…</span></div>
+                <div id="loading" class="camera-loading" role="status" aria-live="polite">
+                    <div class="camera-loading-icon"><i class="fa-solid fa-video"></i></div>
+                    <div><strong>Carregando câmeras</strong><span>O cadastro será exibido em instantes.</span></div>
                 </div>
                 <div class="grid" id="camera-grid"></div>
             </div>
@@ -179,8 +227,9 @@
         <div class="modal-body">
             <h3 id="modal-title" style="margin-bottom: 10px;">Nova Câmera</h3>
             <input type="hidden" id="form-rowId">
-            <input type="text" id="form-nome" placeholder="Nome">
-            <input type="text" id="form-nvr" placeholder="NVR">
+            <label for="form-nome">Câmera</label>
+            <select id="form-nome"><option value="">Carregando câmeras do NVR...</option></select>
+            <input type="hidden" id="form-nvr" value="NVR">
             <input type="text" id="form-local" placeholder="Local">
             <select id="form-unidade">
                 <option value="Macatuba">Macatuba</option>
@@ -188,10 +237,7 @@
                 <option value="Jundiaí II">Jundiaí II</option>
                 <option value="Matriz">Matriz</option>
             </select>
-            <select id="form-status">
-                <option value="online">Online</option>
-                <option value="offline">Offline</option>
-            </select>
+            <input type="hidden" id="form-status" value="online">
             <div class="modal-btns">
                 <button class="btn-no" onclick="closeModal()">SAIR</button>
                 <button class="btn-ok" id="btn-delete" onclick="deleteCamera()" style="display:none; background: #ef4444;">EXCLUIR</button>
@@ -200,30 +246,205 @@
         </div>
     </div>
 
+    <div id="camera-details-modal" role="dialog" aria-modal="true" aria-labelledby="camera-details-name" onclick="closeCameraDetailsOnBackdrop(event)">
+        <section class="camera-details-panel">
+            <div id="camera-details-hero" class="camera-details-hero">
+                <button class="camera-details-close" type="button" onclick="closeCameraDetails()" aria-label="Fechar detalhes"><i class="fa-solid fa-xmark"></i></button>
+                <div class="camera-details-kicker"><i class="fa-solid fa-video"></i> Detalhes da câmera</div>
+                <h3 id="camera-details-name" class="camera-details-name">Câmera</h3>
+                <div id="camera-details-location" class="camera-details-location"><i class="fa-solid fa-location-dot"></i><span>Local não informado</span></div>
+                <div id="camera-details-state" class="camera-details-state"></div>
+            </div>
+            <div class="camera-details-content">
+                <div class="camera-details-section-title"><i class="fa-solid fa-circle-info"></i> Informações técnicas</div>
+                <div class="camera-details-grid">
+                    <div class="camera-detail-item"><div class="camera-detail-label"><i class="fa-solid fa-server"></i> NVR</div><div id="detail-nvr" class="camera-detail-value">—</div></div>
+                    <div class="camera-detail-item"><div class="camera-detail-label"><i class="fa-solid fa-hashtag"></i> Canal</div><div id="detail-channel" class="camera-detail-value">—</div></div>
+                    <div class="camera-detail-item"><div class="camera-detail-label"><i class="fa-solid fa-network-wired"></i> IP</div><div id="detail-ip" class="camera-detail-value is-ip">—</div></div>
+                    <div class="camera-detail-item"><div class="camera-detail-label"><i class="fa-solid fa-gauge-high"></i> Banda</div><div id="detail-bandwidth" class="camera-detail-value">—</div></div>
+                    <div class="camera-detail-item"><div class="camera-detail-label"><i class="fa-solid fa-building"></i> Unidade</div><div id="detail-unit" class="camera-detail-value">—</div></div>
+                    <div class="camera-detail-item"><div class="camera-detail-label"><i class="fa-solid fa-satellite-dish"></i> Fonte do status</div><div id="detail-status-source" class="camera-detail-value">—</div></div>
+                </div>
+                <div class="camera-details-footer"><button type="button" class="camera-details-edit" onclick="editCameraFromDetails()"><i class="fa-solid fa-pen-to-square"></i>Editar câmera</button></div>
+            </div>
+        </section>
+    </div>
+
+    <div id="bulk-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center; backdrop-filter:blur(4px);">
+        <div class="modal-body" style="max-width:560px;">
+            <h3 style="margin-bottom:10px;">Cadastrar várias câmeras</h3>
+            <p style="font-size:13px; margin-bottom:14px; opacity:.8;">Selecione as câmeras e informe os mesmos dados administrativos para todas.</p>
+            <select id="bulk-unidade">
+                <option value="Macatuba">Macatuba</option>
+                <option value="Jundiaí I">Jundiaí I</option>
+                <option value="Jundiaí II">Jundiaí II</option>
+                <option value="Matriz">Matriz</option>
+            </select>
+            <input type="text" id="bulk-local" placeholder="Local (opcional)">
+            <label class="bulk-camera-option" style="margin-top:12px; border:1px solid var(--border); border-radius:10px;"><input type="checkbox" id="bulk-all" onchange="toggleBulkAll(this.checked)"> Selecionar todas as câmeras disponíveis</label>
+            <div id="bulk-camera-list" class="bulk-camera-list"></div>
+            <div class="modal-btns">
+                <button class="btn-no" onclick="closeBulkModal()">SAIR</button>
+                <button class="btn-ok" id="btn-bulk-save" onclick="saveBulkCameras()">CADASTRAR SELECIONADAS</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         SCD.requireAuth();
         let cameras = [];
+        let camerasExibidas = [];
         let currentUnit = 'all';
+        let monitoramentoNvr = { online: false, cameras: [], nvr: {} };
+        let bancoCarregado = false;
+        let nvrCarregado = false;
+        let erroBanco = '';
+        let sincronizacaoStatusEmAndamento = false;
+        let monitoramentoEmAndamento = false;
+
+        function normalizarChave(valor) {
+            return String(valor || '')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toUpperCase().replace(/[^A-Z0-9]/g, '');
+        }
+
+        function cameraDoNvr(camera) {
+            if (camera?._nvrCamera) return camera._nvrCamera;
+            const chave = normalizarChave(camera?.nome);
+            const nvr = normalizarChave(camera?.nvr);
+            return (monitoramentoNvr.cameras || []).find(item => normalizarChave(item.name) === chave && (!nvr || normalizarChave(item.nvrName) === nvr)) || null;
+        }
+
+        function formatarBanda(camera) {
+            const banda = Number(camera?.bandwidthMbps);
+            if (!Number.isFinite(banda)) return '—';
+            return `${banda.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} Mbps`;
+        }
+
+        function atualizarOpcoesNvr(selecionada = '') {
+            const campo = document.getElementById('form-nome');
+            if (!campo) return;
+            const camerasNvr = Array.isArray(monitoramentoNvr.cameras) ? monitoramentoNvr.cameras : [];
+            const nomes = new Map(camerasNvr.map(camera => [`${normalizarChave(camera.nvrName)}:${normalizarChave(camera.name)}`, camera]));
+            if (selecionada && ![...nomes.values()].some(camera => normalizarChave(camera.name) === normalizarChave(selecionada))) {
+                nomes.set(`cadastro:${normalizarChave(selecionada)}`, { name: selecionada, channel: null, nvrName: '' });
+            }
+            campo.innerHTML = '<option value="">Selecione a câmera</option>' + [...nomes.values()]
+                .sort((a, b) => `${a.nvrName || ''}-${String(a.channel || 999).padStart(3, '0')}`.localeCompare(`${b.nvrName || ''}-${String(b.channel || 999).padStart(3, '0')}`, 'pt-BR'))
+                .map(camera => `<option value="${SCD.escapeHTML(camera.name)}" data-nvr="${SCD.escapeHTML(camera.nvrName || '')}">${SCD.escapeHTML(camera.nvrName || 'Cadastro')} · ${camera.channel ? `Canal ${String(camera.channel).padStart(2, '0')} · ` : ''}${SCD.escapeHTML(camera.name)}</option>`)
+                .join('');
+            campo.value = selecionada || '';
+        }
+
+        function mesclarCameras() {
+            const chave = (camera) => `${normalizarChave(camera?.nvr)}:${normalizarChave(camera?.nome)}`;
+            const porIp = new Map((monitoramentoNvr.cameras || []).filter(camera => camera.ip).map(camera => [String(camera.ip).trim(), camera]));
+            const porNvr = new Map((monitoramentoNvr.cameras || []).map(camera => [chave({ nvr: camera.nvrName, nome: camera.name }), camera]));
+            const porNome = new Map((monitoramentoNvr.cameras || []).map(camera => [normalizarChave(camera?.name), camera]));
+
+            // O cadastro é a fonte da lista. O NVR só complementa o status, para que
+            // uma indisponibilidade temporária do equipamento não esconda as câmeras.
+            if (!cameras.length && monitoramentoNvr.online) {
+                return (monitoramentoNvr.cameras || []).map((cameraNvr) => ({
+                    rowId: '',
+                    nome: cameraNvr.name,
+                    nvr: cameraNvr.nvrName,
+                    local: 'Não informado',
+                    unidade: 'Sem unidade',
+                    ip: cameraNvr.ip || '',
+                    status: cameraNvr.status || 'unknown',
+                    _nvrCamera: cameraNvr
+                }));
+            }
+            return cameras.map((cadastro) => {
+                const cameraNvr = porIp.get(String(cadastro.ip || '').trim()) || porNvr.get(chave(cadastro)) || porNome.get(normalizarChave(cadastro.nome)) || null;
+                return { ...cadastro, _nvrCamera: cameraNvr };
+            });
+        }
+
+        async function sincronizarStatusNaPlanilha() {
+            if (!bancoCarregado || !nvrCarregado || !monitoramentoNvr.online || sincronizacaoStatusEmAndamento) return;
+            const atualizacoes = cameras.map(camera => {
+                const cameraNvr = cameraDoNvr(camera);
+                if (!camera.rowId || !cameraNvr || typeof cameraNvr.online !== 'boolean') return null;
+                const status = cameraNvr.online ? 'online' : 'offline';
+                return String(camera.status || '').trim().toLowerCase() === status ? null : { camera, status };
+            }).filter(Boolean);
+            if (!atualizacoes.length) return;
+
+            sincronizacaoStatusEmAndamento = true;
+            try {
+                for (let index = 0; index < atualizacoes.length; index += 4) {
+                    const grupo = atualizacoes.slice(index, index + 4);
+                    await Promise.all(grupo.map(({ camera, status }) => SCD.request({
+                        acao: 'edit', rowId: camera.rowId, nome: camera.nome, nvr: camera.nvr,
+                        local: camera.local, unidade: camera.unidade, status, ip: camera.ip || cameraDoNvr(camera)?.ip || ''
+                    }, { method: 'POST', cache: false })));
+                    grupo.forEach(({ camera, status }) => { camera.status = status; });
+                }
+            } catch (error) {
+                console.error('Não foi possível sincronizar o status na planilha.', error);
+            } finally {
+                sincronizacaoStatusEmAndamento = false;
+            }
+        }
+
+        function renderizarResumoMonitoramento() {
+            const resumo = document.getElementById('monitor-summary');
+            const nvr = monitoramentoNvr.nvr || {};
+            if (!monitoramentoNvr.online) {
+                resumo.className = 'monitor-summary is-offline';
+                resumo.innerHTML = `<i class="fa-solid fa-circle-xmark"></i><span>${SCD.escapeHTML(monitoramentoNvr.error || 'Monitoramento do NVR indisponível.')}</span>`;
+                return;
+            }
+            resumo.className = 'monitor-summary';
+            const quantidadeNvrs = Array.isArray(monitoramentoNvr.nvrs) ? monitoramentoNvr.nvrs.length : 1;
+            resumo.innerHTML = `<i class="fa-solid fa-circle-check"></i><span>${quantidadeNvrs} NVR(s) conectado(s) · ${nvr.active || 0} online · ${nvr.offline || 0} offline · atualização automática a cada 30 segundos</span>`;
+        }
+
+        async function atualizarMonitoramento(manual = false) {
+            if (monitoramentoEmAndamento) return;
+            monitoramentoEmAndamento = true;
+            try {
+                const data = await SCD.snmpMonitor({}, { timeout: 15000 });
+                monitoramentoNvr = data?.online ? data : { online: false, cameras: [], error: data?.error };
+            } catch (error) {
+                monitoramentoNvr = { online: false, cameras: [], error: error.message || 'Não foi possível consultar o NVR.' };
+                if (manual) alert(monitoramentoNvr.error);
+            }
+            finally {
+                nvrCarregado = true;
+                monitoramentoEmAndamento = false;
+                renderizarResumoMonitoramento();
+                atualizarOpcoesNvr(document.getElementById('form-nome')?.value || '');
+                render();
+                // Atualizar a planilha não deve atrasar a tela nem a próxima consulta.
+                void sincronizarStatusNaPlanilha();
+            }
+        }
 
         async function load(options = {}) {
             const loading = document.getElementById('loading');
             loading.style.display = 'block';
-            loading.innerHTML = '<i class="fa-solid fa-spinner fa-spin fa-2x"></i>';
 
             try {
                 const data = await SCD.request('getCameras', {
-                    cache: true,
                     cacheKey: 'cameras',
                     force: options.force === true,
-                    cacheTtl: 5 * 60 * 1000
+                    timeout: 6000
                 });
                 cameras = Array.isArray(data) ? data : [];
+                erroBanco = '';
+                bancoCarregado = true;
                 loading.style.display = 'none';
                 render();
+                void sincronizarStatusNaPlanilha();
             } catch (e) {
                 cameras = [];
-                document.getElementById('camera-grid').innerHTML = '';
-                loading.innerHTML = '<div class="no-data"><i class="fa-solid fa-plug-circle-xmark fa-2x" style="color:#ef4444; margin-bottom:12px;"></i><br>Não foi possível carregar as câmeras.</div>';
+                bancoCarregado = true;
+                erroBanco = 'Cadastro indisponível no momento. Exibindo as câmeras encontradas nos NVRs.';
+                loading.style.display = 'none';
+                render();
                 console.error(e);
             }
         }
@@ -238,7 +459,16 @@
 
         function render() {
             const grid = document.getElementById('camera-grid');
-            const filtered = cameras
+            if (erroBanco && !monitoramentoNvr.online) {
+                grid.innerHTML = `<div class="empty-state" style="grid-column:1 / -1; text-align:center; color:#b91c1c; padding:40px;"><i class="fa-solid fa-plug-circle-xmark fa-2x" style="margin-bottom:12px;"></i><br>${SCD.escapeHTML(erroBanco)}</div>`;
+                return;
+            }
+            if (!bancoCarregado) {
+                grid.innerHTML = '';
+                return;
+            }
+            camerasExibidas = mesclarCameras();
+            const filtered = camerasExibidas
                 .map((camera, index) => ({ camera, index }))
                 .filter(({ camera }) => currentUnit === 'all' || camera.unidade === currentUnit);
 
@@ -256,23 +486,30 @@
                 <div class="camera-list-head">
                     <span>Câmera</span>
                     <span>NVR</span>
+                    <span>Canal</span>
                     <span>Local</span>
-                    <span>Unidade</span>
+                    <span>IP</span>
+                    <span>Banda</span>
                     <span>Status</span>
                     <span></span>
                 </div>`;
 
             grid.innerHTML = header + filtered.map(({ camera: c, index }) => {
-                const statusTexto = c.status || 'online';
-                const isOn = statusTexto.toLowerCase() === 'online';
-                const nome = SCD.escapeHTML(c.nome || 'Sem nome');
+                const cameraNvr = cameraDoNvr(c);
+                const statusTexto = cameraNvr ? (cameraNvr.label || 'Não informado') : 'Não vinculada';
+                const isOn = cameraNvr?.online === true;
+                const isOff = cameraNvr?.online === false;
+                const nome = SCD.escapeHTML(cameraNvr?.name || c.nome || 'Sem nome');
                 const nvr = SCD.escapeHTML(c.nvr || '-');
+                const canal = SCD.escapeHTML(cameraNvr?.channel ? `Canal ${String(cameraNvr.channel).padStart(2, '0')}` : '—');
                 const local = SCD.escapeHTML(c.local || '-');
                 const unidade = SCD.escapeHTML(c.unidade || '-');
+                const ip = SCD.escapeHTML(cameraNvr?.ip || c.ip || '—');
                 const status = SCD.escapeHTML(statusTexto);
+                const banda = SCD.escapeHTML(formatarBanda(cameraNvr));
                 
                 return `
-                    <div class="camera-row ${isOn ? 'is-online' : 'is-offline'}">
+                    <div class="camera-row ${isOn ? 'is-online' : isOff ? 'is-offline' : ''}" role="button" tabindex="0" aria-label="Ver detalhes de ${nome}" onclick="openCameraDetails(camerasExibidas[${index}])" onkeydown="openCameraDetailsOnKey(event, camerasExibidas[${index}])">
                         <div class="camera-primary">
                             <span class="camera-state-dot"></span>
                             <div>
@@ -281,33 +518,92 @@
                             </div>
                         </div>
                         <div class="camera-field"><span>NVR</span><strong>${nvr}</strong></div>
+                        <div class="camera-field"><span>Canal</span><strong>${canal}</strong></div>
                         <div class="camera-field"><span>Local</span><strong>${local}</strong></div>
-                        <div class="camera-field"><span>Unidade</span><strong>${unidade}</strong></div>
+                        <div class="camera-field"><span>IP</span><strong>${ip}</strong></div>
+                        <div class="camera-field"><span>Banda</span><strong class="camera-bandwidth">${banda}</strong></div>
                         <div class="camera-status">
-                            <span class="status-pill ${isOn ? 'st-online' : 'st-offline'}"><i class="fa-solid ${isOn ? 'fa-check-circle' : 'fa-times-circle'}"></i> ${status}</span>
+                            <span class="status-pill ${isOn ? 'st-online' : isOff ? 'st-offline' : 'st-unknown'}"><i class="fa-solid ${isOn ? 'fa-check-circle' : isOff ? 'fa-times-circle' : 'fa-circle-question'}"></i> ${status}</span>
                         </div>
-                        <button class="btn-edit" onclick="openModal('edit', cameras[${index}])" title="Editar câmera" aria-label="Editar ${nome}">
+                        <button class="btn-edit" onclick="event.stopPropagation(); openModal('edit', camerasExibidas[${index}])" title="Editar câmera" aria-label="Editar ${nome}">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
                     </div>`;
             }).join('');
         }
 
+        function camerasDisponiveisParaCadastro() {
+            const ipsCadastrados = new Set(cameras.filter(camera => camera.ip).map(camera => String(camera.ip).trim()));
+            const nomesCadastrados = new Set(cameras.map(camera => normalizarChave(camera.nome)));
+            return (monitoramentoNvr.cameras || []).filter(camera =>
+                !ipsCadastrados.has(String(camera.ip || '').trim()) && !nomesCadastrados.has(normalizarChave(camera.name))
+            );
+        }
+
+        function openBulkModal() {
+            if (!bancoCarregado || !nvrCarregado || !monitoramentoNvr.online) {
+                alert('Aguarde o carregamento do NVR e do cadastro.');
+                return;
+            }
+            const disponiveis = camerasDisponiveisParaCadastro();
+            const lista = document.getElementById('bulk-camera-list');
+            lista.innerHTML = disponiveis.length
+                ? disponiveis.map(camera => `<label class="bulk-camera-option"><input type="checkbox" data-ip="${SCD.escapeHTML(camera.ip)}"> <span>${SCD.escapeHTML(camera.nvrName)} · Canal ${String(camera.channel).padStart(2, '0')} · ${SCD.escapeHTML(camera.name)}<small style="display:block; opacity:.7; margin-top:2px;">${SCD.escapeHTML(camera.ip)}</small></span></label>`).join('')
+                : '<div style="padding:18px; text-align:center; color:#777;">Todas as câmeras do NVR já estão cadastradas.</div>';
+            document.getElementById('bulk-all').checked = false;
+            document.getElementById('bulk-modal').style.display = 'flex';
+        }
+
+        function closeBulkModal() { document.getElementById('bulk-modal').style.display = 'none'; }
+
+        function toggleBulkAll(checked) {
+            document.querySelectorAll('#bulk-camera-list input[type="checkbox"]').forEach(input => { input.checked = checked; });
+        }
+
+        async function saveBulkCameras() {
+            const selecionadas = [...document.querySelectorAll('#bulk-camera-list input[type="checkbox"]:checked')]
+                .map(input => (monitoramentoNvr.cameras || []).find(camera => String(camera.ip) === input.dataset.ip))
+                .filter(Boolean);
+            if (!selecionadas.length) { alert('Selecione pelo menos uma câmera.'); return; }
+            const btn = document.getElementById('btn-bulk-save');
+            const reset = SCD.setBusy(btn, 'CADASTRANDO...');
+            try {
+                await SCD.request({
+                    acao: 'bulk_add',
+                    cameras: selecionadas.map(camera => ({
+                        nome: camera.name,
+                        nvr: camera.nvrName,
+                        ip: camera.ip,
+                        unidade: document.getElementById('bulk-unidade').value,
+                        local: document.getElementById('bulk-local').value.trim()
+                    }))
+                }, { method: 'POST', cache: false, clearCache: true });
+                closeBulkModal();
+                await load({ force: true });
+            } catch (error) {
+                alert('Não foi possível cadastrar em lote. Verifique se a API da planilha foi atualizada.');
+                console.error(error);
+            } finally {
+                reset();
+            }
+        }
+
         function openModal(mode, data = null) {
             document.getElementById('modal').style.display = 'flex';
             if(mode === 'edit') {
                 document.getElementById('modal-title').innerText = "Editar Câmera";
-                document.getElementById('form-rowId').value = data.rowId;
-                document.getElementById('form-nome').value = data.nome;
-                document.getElementById('form-nvr').value = data.nvr;
-                document.getElementById('form-local').value = data.local;
-                document.getElementById('form-unidade').value = data.unidade;
-                document.getElementById('form-status').value = data.status || 'online';
+                document.getElementById('form-rowId').value = data.rowId || '';
+                atualizarOpcoesNvr(data.nome);
+                document.getElementById('form-nvr').value = data.nvr || '';
+                document.getElementById('form-local').value = data.local || '';
+                document.getElementById('form-unidade').value = data.unidade || 'Macatuba';
+                document.getElementById('form-status').value = 'online';
                 
-                document.getElementById('btn-delete').style.display = 'block'; 
+                document.getElementById('btn-delete').style.display = data.rowId ? 'block' : 'none';
             } else {
                 document.getElementById('modal-title').innerText = "Nova Câmera";
                 document.querySelectorAll('.modal-body input').forEach(i => i.value = "");
+                atualizarOpcoesNvr();
                 document.getElementById('form-status').value = "online";
 
                 document.getElementById('btn-delete').style.display = 'none'; 
@@ -316,23 +612,86 @@
 
         function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
+        let cameraDetalhesAtual = null;
+
+        function setDetailValue(id, value) {
+            document.getElementById(id).textContent = value || '—';
+        }
+
+        function openCameraDetails(camera) {
+            const cameraNvr = cameraDoNvr(camera);
+            const isOn = cameraNvr?.online === true;
+            const isOff = cameraNvr?.online === false;
+            const status = cameraNvr ? (cameraNvr.label || 'Não informado') : 'Não vinculada';
+            const source = cameraNvr?.statusSource === 'reachability' ? 'Conectividade de rede' : cameraNvr ? 'Monitoramento do NVR' : 'Cadastro da câmera';
+            const channel = cameraNvr?.channel ? `Canal ${String(cameraNvr.channel).padStart(2, '0')}` : 'Não informado';
+            const name = cameraNvr?.name || camera.nome || 'Câmera sem nome';
+            const local = camera.local || 'Local não informado';
+
+            cameraDetalhesAtual = camera;
+            document.getElementById('camera-details-name').textContent = name;
+            document.getElementById('camera-details-location').innerHTML = `<i class="fa-solid fa-location-dot"></i><span>${SCD.escapeHTML(local)}</span>`;
+            document.getElementById('camera-details-state').innerHTML = `<i class="fa-solid ${isOn ? 'fa-circle-check' : isOff ? 'fa-circle-xmark' : 'fa-circle-question'}"></i><span>${SCD.escapeHTML(status)}</span>`;
+            const hero = document.getElementById('camera-details-hero');
+            hero.className = `camera-details-hero ${isOff ? 'is-offline' : !isOn ? 'is-unknown' : ''}`;
+            setDetailValue('detail-nvr', camera.nvr || cameraNvr?.nvrName || 'Não informado');
+            setDetailValue('detail-channel', channel);
+            setDetailValue('detail-ip', cameraNvr?.ip || camera.ip || 'Não informado');
+            setDetailValue('detail-bandwidth', formatarBanda(cameraNvr));
+            setDetailValue('detail-unit', camera.unidade || 'Não informada');
+            setDetailValue('detail-status-source', source);
+            document.getElementById('camera-details-modal').style.display = 'flex';
+            document.querySelector('.camera-details-close').focus();
+        }
+
+        function closeCameraDetails() {
+            document.getElementById('camera-details-modal').style.display = 'none';
+            cameraDetalhesAtual = null;
+        }
+
+        function closeCameraDetailsOnBackdrop(event) {
+            if (event.target === event.currentTarget) closeCameraDetails();
+        }
+
+        function openCameraDetailsOnKey(event, camera) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openCameraDetails(camera);
+            }
+        }
+
+        function editCameraFromDetails() {
+            if (!cameraDetalhesAtual) return;
+            const camera = cameraDetalhesAtual;
+            closeCameraDetails();
+            openModal('edit', camera);
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape' && document.getElementById('camera-details-modal').style.display === 'flex') closeCameraDetails();
+        });
+
         async function deleteCamera() {
             if(!confirm("Tem certeza que deseja EXCLUIR esta câmera? Esta ação não pode ser desfeita.")) return;
             
             const btn = document.getElementById('btn-delete');
             const reset = SCD.setBusy(btn, "EXCLUINDO...");
+            const rowId = document.getElementById('form-rowId').value;
             
             const payload = {
                 acao: 'delete',
-                rowId: document.getElementById('form-rowId').value
+                rowId
             };
             
             try {
-                await SCD.request(payload, { method: 'POST', cache: false, clearCache: true });
+                const resultado = await SCD.request(payload, { method: 'POST', cache: false, clearCache: true });
+                if (resultado?.sucesso !== true) throw new Error(resultado?.erro || 'A planilha não confirmou a exclusão.');
+                cameras = cameras.filter(camera => String(camera.rowId) !== String(rowId));
                 closeModal();
+                render();
                 await load({ force: true });
             } catch (e) {
-                alert("Não foi possível excluir agora. Tente novamente.");
+                alert(e.message || "Não foi possível excluir da planilha agora. Tente novamente.");
                 console.error(e);
             } finally {
                 reset();
@@ -348,14 +707,20 @@
             }
 
             const reset = SCD.setBusy(btn, "SALVANDO...");
+            const opcao = document.getElementById('form-nome').selectedOptions[0];
+            const cameraNvr = (monitoramentoNvr.cameras || []).find(camera =>
+                normalizarChave(camera.name) === normalizarChave(nome) &&
+                (!opcao?.dataset?.nvr || normalizarChave(camera.nvrName) === normalizarChave(opcao.dataset.nvr))
+            );
             const payload = {
                 acao: document.getElementById('form-rowId').value ? 'edit' : 'add',
                 rowId: document.getElementById('form-rowId').value,
                 nome,
-                nvr: document.getElementById('form-nvr').value,
+                nvr: opcao?.dataset?.nvr || document.getElementById('form-nvr').value,
                 local: document.getElementById('form-local').value,
                 unidade: document.getElementById('form-unidade').value,
-                status: document.getElementById('form-status').value
+                status: document.getElementById('form-status').value,
+                ip: cameraNvr?.ip || ''
             };
             try {
                 await SCD.request(payload, { method: 'POST', cache: false, clearCache: true });
@@ -370,6 +735,8 @@
         }
         
         load();
+        atualizarMonitoramento();
+        window.setInterval(() => atualizarMonitoramento(false), 30000);
     </script>
 </body>
 </html>

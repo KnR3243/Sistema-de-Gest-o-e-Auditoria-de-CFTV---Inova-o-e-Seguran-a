@@ -120,6 +120,9 @@
         .camera-header i.fa-chevron-right { transition: transform 0.3s; color: #888; }
         .camera-header.open i.fa-chevron-right { transform: rotate(90deg); }
         .camera-header.has-error { border-left-color: #ef4444; background: rgba(239, 68, 68, 0.05); }
+        .camera-status { font-size: 11px; font-weight: 800; border-radius: 999px; padding: 6px 9px; margin-right: 12px; white-space: nowrap; }
+        .camera-status.online { color: #237a2b; background: #e6f5df; }
+        .camera-status.offline { color: #b42318; background: #fee4e2; }
 
         .camera-body { padding: 25px; border-top: 1px solid var(--border); display: none; background: var(--bg); }
         .camera-body.open { display: block; }
@@ -215,7 +218,7 @@
 </head>
 <body>
 
-    <script src="assets/js/app-core.js?v=1.7.4"></script>
+    <script src="assets/js/app-core.js?v=1.7.5"></script>
     <script>
         SCD.applyTheme();
     </script>
@@ -315,6 +318,27 @@
         SCD.requireAuth();
         
         let bdCamerasDinamic = {};
+        let monitoramentoNvr = { online: false, cameras: [] };
+
+        function normalizarChave(valor) {
+            return String(valor || '')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toUpperCase().replace(/[^A-Z0-9]/g, '');
+        }
+
+        function localizarCameraNoNvr(camera, camerasNvr) {
+            const ip = String(camera.ip || camera.IP || '').trim();
+            const nome = normalizarChave(camera.nome);
+            const nvr = normalizarChave(camera.nvr);
+            if (ip) {
+                const porIp = camerasNvr.find(item => String(item.ip || '').trim() === ip);
+                if (porIp) return porIp;
+            }
+            const porNvrENome = camerasNvr.find(item =>
+                normalizarChave(item.nvrName) === nvr && normalizarChave(item.name) === nome
+            );
+            return porNvrENome || camerasNvr.find(item => normalizarChave(item.name) === nome) || null;
+        }
 
         function atualizarRelogio() {
             const a = new Date();
@@ -344,11 +368,15 @@
 
         async function buscarCamerasDoBanco() {
             try {
-                const data = await SCD.request('getCameras', {
-                    cache: true,
-                    cacheKey: 'cameras',
-                    cacheTtl: 5 * 60 * 1000
-                });
+                const [data, monitor] = await Promise.all([
+                    SCD.request('getCameras', {
+                        cache: true,
+                        cacheKey: 'cameras',
+                        cacheTtl: 5 * 60 * 1000
+                    }),
+                    SCD.snmpMonitor({}, { timeout: 45000 }).catch(() => ({ online: false, cameras: [] }))
+                ]);
+                monitoramentoNvr = monitor?.online ? monitor : { online: false, cameras: [] };
                 
                 if(data.erro || data.error) {
                     document.getElementById('lista-cameras').innerHTML = `<p style="color:#ef4444; text-align:center; padding:30px;"><i class="fa-solid fa-triangle-exclamation fa-2x"></i><br>Erro de comunicação: ${SCD.escapeHTML(data.erro || data.error)}</p>`;
@@ -358,9 +386,10 @@
                 bdCamerasDinamic = {};
                 (Array.isArray(data) ? data : []).forEach(item => {
                     const unid = item.unidade;
-                    const cam = item.nome;     
+                    const cam = item.nome;
                     const nvr = item.nvr;      
                     const local = item.local;  
+                    const ip = item.ip || item.IP || '';
                     
                     const nvrFormatado = nvr + (local ? " - " + local : "");
 
@@ -371,7 +400,15 @@
                         grupoExistente = { nvr: nvrFormatado, cameras: [] };
                         bdCamerasDinamic[unid].push(grupoExistente);
                     }
-                    grupoExistente.cameras.push(cam);
+                    const cameraNvr = localizarCameraNoNvr(item, monitoramentoNvr.cameras || []);
+                    const statusMonitorado = typeof cameraNvr?.online === 'boolean'
+                        ? (cameraNvr.online ? 'online' : 'offline')
+                        : String(item.status || '').trim().toLowerCase();
+                    grupoExistente.cameras.push({
+                        nome: cam,
+                        ip: cameraNvr?.ip || ip,
+                        status: statusMonitorado === 'offline' ? 'offline' : 'online'
+                    });
                 });
 
                 const selUnidade = document.getElementById('unidade');
@@ -404,31 +441,46 @@
                 const nvrSeguro = SCD.escapeHTML(grupo.nvr);
                 let htmlGrupo = `<div class="nvr-group"><div class="nvr-header" onclick="toggleNVR(this)"><div><i class="fa-solid fa-server" style="margin-right: 8px;"></i> ${nvrSeguro}</div><i class="fa-solid fa-chevron-down"></i></div><div class="nvr-body" data-nvr="${nvrSeguro}">`;
                 
-                grupo.cameras.forEach(cam => {
+                grupo.cameras.forEach(camera => {
                     const idx = cameraIndexGlobal++;
-                    const camSeguro = SCD.escapeHTML(cam);
+                    const camSeguro = SCD.escapeHTML(camera.nome);
+                    const ipSeguro = SCD.escapeHTML(camera.ip || 'IP não cadastrado');
+                    const estaOffline = camera.status === 'offline';
+                    const classeFalha = estaOffline ? ' has-error' : '';
+                    const classeAberta = estaOffline ? ' open' : '';
+                    const statusCamera = estaOffline
+                        ? '<span class="camera-status offline"><i class="fa-solid fa-circle-xmark"></i> OFFLINE</span>'
+                        : '<span class="camera-status online"><i class="fa-solid fa-circle-check"></i> ONLINE</span>';
                     htmlGrupo += `
-                        <div class="camera-card">
-                            <div class="camera-header" onclick="toggleCard(this)">
-                                <div class="cam-nome"><span style="color:#888; font-size: 11px; display:block; text-transform:uppercase; font-weight: bold; margin-bottom: 2px;">Câmera</span> ${camSeguro}</div>
-                                <div><span class="status-badge" style="font-size: 12px; color: var(--icc-green); margin-right: 15px; font-weight: 800; border: 1px solid var(--icc-green); padding: 4px 10px; border-radius: 5px;">OK</span><i class="fa-solid fa-chevron-right"></i></div>
+                        <div class="camera-card" data-camera-index="${idx}">
+                            <div class="camera-header${classeFalha}${classeAberta}" onclick="toggleCard(this)">
+                                <div class="cam-nome"><span style="color:#888; font-size: 11px; display:block; text-transform:uppercase; font-weight: bold; margin-bottom: 2px;">Câmera</span> ${camSeguro}<small style="display:block; margin-top:4px; color:#777;">${ipSeguro}</small></div>
+                                <div>${statusCamera}<i class="fa-solid fa-chevron-right"></i></div>
                             </div>
-                            <div class="camera-body">
-                                <div class="form-group-cam">
-                                    <label>Status Operacional</label>
-                                    <div class="segmented-control">
-                                        <label class="segment-btn segment-ok"><input type="radio" name="status_${idx}" value="OK" checked onchange="verificarStatus(this, ${idx})"> <i class="fa-solid fa-check"></i> OK</label>
-                                        <label class="segment-btn segment-falha"><input type="radio" name="status_${idx}" value="Falha" onchange="verificarStatus(this, ${idx})"> <i class="fa-solid fa-xmark"></i> Falha</label>
-                                    </div>
+                            <div class="camera-body${classeAberta}">
+                                <div class="form-group-cam" aria-hidden="true" style="display:none;">
+                                    <input type="radio" name="status_${idx}" value="OK" ${estaOffline ? '' : 'checked'}>
+                                    <input type="radio" name="status_${idx}" value="Falha" ${estaOffline ? 'checked' : ''}>
                                 </div>
-                                <div class="form-group-cam" id="bloco_tratativa_${idx}" style="display: none;">
+                                <div class="form-group-cam" id="bloco_tratativa_${idx}" style="display: ${estaOffline ? 'block' : 'none'};">
                                     <label>Tratativa Imediata?</label>
                                     <div class="segmented-control">
                                         <label class="segment-btn segment-sim"><input type="radio" name="tratativa_${idx}" value="Sim" checked> Sim</label>
                                         <label class="segment-btn segment-nao"><input type="radio" name="tratativa_${idx}" value="Não"> Não</label>
                                     </div>
                                 </div>
-                                <div class="form-group-cam" id="bloco_desc_${idx}" style="display: none;">
+                                <div class="form-group-cam" id="bloco_motivo_${idx}" style="display: ${estaOffline ? 'block' : 'none'};">
+                                    <label>Motivo da ocorrência</label>
+                                    <select name="motivo_${idx}">
+                                        <option value="">Selecione...</option>
+                                        <option value="Câmera sem comunicação">Câmera sem comunicação</option>
+                                        <option value="Falha de rede">Falha de rede</option>
+                                        <option value="Falha de energia">Falha de energia</option>
+                                        <option value="Imagem indisponível">Imagem indisponível</option>
+                                        <option value="Outro">Outro</option>
+                                    </select>
+                                </div>
+                                <div class="form-group-cam" id="bloco_desc_${idx}" style="display: ${estaOffline ? 'block' : 'none'};">
                                     <label>Ação Realizada</label>
                                     <select name="desc_${idx}">
                                         <option value="">Selecione...</option>
@@ -437,7 +489,7 @@
                                         <option value="Substituição">Substituição</option>
                                     </select>
                                 </div>
-                                <div class="form-group-cam" id="bloco_obs_${idx}" style="display: none;">
+                                <div class="form-group-cam" id="bloco_obs_${idx}" style="display: ${estaOffline ? 'block' : 'none'};">
                                     <label>Observações</label>
                                     <textarea name="obs_${idx}" rows="3" placeholder="Descreva detalhes da ocorrência"></textarea>
                                 </div>
@@ -469,22 +521,16 @@
         function verificarStatus(radio, index) {
             const isFalha = radio.value === 'Falha';
             document.getElementById(`bloco_tratativa_${index}`).style.display = isFalha ? 'block' : 'none';
+            document.getElementById(`bloco_motivo_${index}`).style.display = isFalha ? 'block' : 'none';
             document.getElementById(`bloco_desc_${index}`).style.display = isFalha ? 'block' : 'none';
             document.getElementById(`bloco_obs_${index}`).style.display = isFalha ? 'block' : 'none';
             
             const header = radio.closest('.camera-card').querySelector('.camera-header');
-            const badge = header.querySelector('.status-badge');
             if(isFalha) {
                 header.classList.add('has-error'); 
-                badge.innerHTML = "<i class='fa-solid fa-triangle-exclamation'></i> FALHA"; 
-                badge.style.color = "#ef4444";
-                badge.style.borderColor = "#ef4444";
                 if(!header.classList.contains('open')) toggleCard(header);
             } else {
                 header.classList.remove('has-error'); 
-                badge.innerHTML = "OK"; 
-                badge.style.color = "var(--icc-green)";
-                badge.style.borderColor = "var(--icc-green)";
                 if(header.classList.contains('open')) toggleCard(header);
             }
         }
@@ -618,18 +664,20 @@
                     
                     if(statusInput.value === 'Falha') {
                         const tratativa = card.querySelector(`input[name="tratativa_${gIdx}"]:checked`).value;
+                        const motivo = card.querySelector(`select[name="motivo_${gIdx}"]`).value;
                         const acao = card.querySelector(`select[name="desc_${gIdx}"]`).value;
                         const observacao = card.querySelector(`textarea[name="obs_${gIdx}"]`).value.trim();
+                        const motivoSeguro = SCD.escapeHTML(motivo);
                         const acaoSeguro = SCD.escapeHTML(acao);
                         const observacaoSeguro = SCD.escapeHTML(observacao);
-                        const detalheAcaoPDF = `${acaoSeguro || 'Tratativa pendente'}${observacaoSeguro ? `<br><span style="color:#555;"><b>Obs.:</b> ${observacaoSeguro}</span>` : ''}`;
+                        const detalheAcaoPDF = `${motivoSeguro ? `<b>Motivo:</b> ${motivoSeguro}<br>` : ''}${acaoSeguro || 'Tratativa pendente'}${observacaoSeguro ? `<br><span style="color:#555;"><b>Obs.:</b> ${observacaoSeguro}</span>` : ''}`;
                         reportRowsLocal.push({
                             camera: camNome,
                             nvr: nvrNome,
                             local: nvrNome,
                             status: 'FALHA',
                             action: acao || 'Tratativa pendente',
-                            note: observacao
+                            note: `${motivo ? `Motivo: ${motivo}${observacao ? ' · ' : ''}` : ''}${observacao}`
                         });
 
                         let alertaAcao = "";
@@ -637,11 +685,18 @@
                             alertaAcao = `<span class="alerta-falta"><i class="fa-solid fa-circle-exclamation"></i> Faltou a Ação Realizada!</span>`;
                             formValido = false;
                         }
+                        if(!motivo) {
+                            alertaAcao += `<span class="alerta-falta"><i class="fa-solid fa-circle-exclamation"></i> Informe o motivo.</span>`;
+                            formValido = false;
+                        }
 
                         htmlRegistrosPreview += `
                             <div style="margin-bottom: 12px; padding: 18px; background: rgba(239, 68, 68, 0.05); border-left: 5px solid #ef4444; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;">
                                 <div>
                                     <span style="color: #ef4444; font-weight: 800; font-size: 15px;"><i class="fa-solid fa-video-slash"></i> ${camNomeSeguro} (FALHA)</span>
+                                    <div style="margin-top: 8px; font-size: 13px; color: var(--text);">
+                                        <b>Motivo:</b> ${motivoSeguro || '<i>Não informado</i>'}
+                                    </div>
                                     <div style="margin-top: 8px; font-size: 13px; color: var(--text);">
                                         <b>Ação:</b> ${acaoSeguro || '<i>Nenhuma</i>'} ${alertaAcao}
                                     </div>
@@ -651,7 +706,7 @@
                             </div>`;
                         
                         htmlTabelaPDF += `<tr><td style="border: 1px solid #333; padding: 8px; font-weight:bold;">${camNomeSeguro}</td><td style="border: 1px solid #333; padding: 8px; color:red; font-weight:bold; text-align:center;">FALHA</td><td style="border: 1px solid #333; padding: 8px;">${detalheAcaoPDF}</td><td style="border: 1px solid #333; padding: 0; text-align:center; vertical-align:middle;">${fotoPdfTag}</td></tr>`;
-                        falhasDB.push(`${camNome} (${acao || 'Tratativa pendente'}${observacao ? ` - Obs.: ${observacao}` : ''})`);
+                        falhasDB.push(`${camNome} (${motivo || 'Motivo não informado'} - ${acao || 'Tratativa pendente'}${observacao ? ` - Obs.: ${observacao}` : ''})`);
                     
                     } else { 
                         const msgOk = "Câmera operante / OK";
@@ -709,6 +764,7 @@
                 responsavel: respH, 
                 unidade: und, 
                 ocorrencias: falhasDB.length > 0 ? falhasDB.join(' | ') : "100% OK",
+                observacoes: '',
                 htmlTabelaCameras: htmlTabelaPDF,
                 assinaturaB64: canvas.toDataURL(),
                 linhaAssinatura: false,
@@ -771,7 +827,6 @@
             const linhaPdf = linkDoc
                 ? `PDF do relatório: ${linkDoc}`
                 : `PDF: ${arquivoLocal ? `o arquivo ${arquivoLocal} foi baixado neste computador e pode ser anexado ao e-mail.` : 'gerado localmente para anexar ao e-mail.'}`;
-
             return [
                 `Olá ${responsavel},`,
                 '',
@@ -784,7 +839,7 @@
                 '',
                 'Atenciosamente',
                 'Equipe de TI'
-            ].join('\n');
+            ].filter(Boolean).join('\n');
         }
 
         async function enviarEmailRelatorio(linkDoc = '', arquivoLocal = '') {

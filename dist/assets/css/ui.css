@@ -1255,26 +1255,35 @@ body:not(:has(.glass-card)):not(:has(.menu-grid)) .view .grid#camera-grid {
 .camera-list-head,
 .camera-row {
     display: grid;
-    grid-template-columns: minmax(230px, 1.35fr) minmax(110px, 0.7fr) minmax(120px, 0.8fr) minmax(130px, 0.8fr) minmax(120px, 0.72fr) 44px;
+    grid-template-columns: minmax(210px, 1.4fr) minmax(96px, 0.65fr) minmax(92px, 0.58fr) minmax(105px, 0.7fr) minmax(130px, 0.85fr) minmax(92px, 0.58fr) minmax(108px, 0.7fr) 42px;
     align-items: center;
-    column-gap: 18px;
+    column-gap: 12px;
 }
 
 .camera-list-head {
-    padding: 18px 18px 10px !important;
+    padding: 20px 22px 9px !important;
     color: var(--portal-muted);
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 900;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
 }
 
 .camera-row {
-    min-height: 76px;
-    margin: 8px 16px;
-    padding: 12px 14px;
-    background: var(--portal-row);
-    border: 1px solid var(--portal-line-strong);
-    border-radius: 9px;
+    min-height: 84px;
+    margin: 10px 16px;
+    padding: 14px 18px;
+    background: #fbfdf9;
+    border: 1px solid #d6e6d1;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(31, 75, 45, 0.035);
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.camera-row:hover {
+    border-color: #9cc991;
+    box-shadow: 0 8px 20px rgba(31, 75, 45, 0.08);
+    transform: translateY(-1px);
 }
 
 .camera-row.is-offline {
@@ -1286,7 +1295,7 @@ body:not(:has(.glass-card)):not(:has(.menu-grid)) .view .grid#camera-grid {
     display: flex;
     align-items: center;
     min-width: 0;
-    gap: 12px;
+    gap: 14px;
 }
 
 .camera-primary h3 {
@@ -1310,6 +1319,11 @@ body:not(:has(.glass-card)):not(:has(.menu-grid)) .view .grid#camera-grid {
 
 .camera-field {
     min-width: 0;
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    padding-left: 12px;
+    border-left: 1px solid #e3ece0;
 }
 
 .camera-field span {
@@ -1321,14 +1335,43 @@ body:not(:has(.glass-card)):not(:has(.menu-grid)) .view .grid#camera-grid {
     min-width: 0;
     color: var(--portal-text);
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 850;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
 .camera-status {
-    justify-self: start;
+    justify-self: end;
+}
+
+.camera-row .camera-field:nth-child(2) strong {
+    color: #245a82;
+}
+
+.camera-row .camera-field:nth-child(3) strong {
+    color: #8b620d;
+}
+
+.camera-row .camera-field:nth-child(4) strong {
+    color: #536c5c;
+}
+
+.camera-row .camera-field:nth-child(5) strong {
+    color: #315268;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+}
+
+.camera-bandwidth {
+    display: inline-flex !important;
+    align-items: center;
+    width: fit-content;
+    padding: 6px 8px;
+    border-radius: 7px;
+    background: #e9f5e5;
+    color: #24763a !important;
+    font-size: 13px !important;
 }
 
 .camera-row .btn-edit {
@@ -1732,6 +1775,7 @@ body:has(.menu-shell) footer {
         justify-content: space-between;
         gap: 12px;
         padding: 8px 10px;
+        border-left: 0;
         background: rgba(255, 255, 255, 0.58);
         border-radius: 7px;
     }
@@ -2404,4 +2448,53 @@ body:not(:has(.glass-card)):not(:has(.menu-grid)) .top-bar {
     body:not(:has(.glass-card)):not(:has(.menu-grid)) .sidebar-item {
         min-height: 48px !important;
     }
+}
+
+/* Estado de carregamento compacto: a lista nunca fica coberta por uma área vazia. */
+.monitor-summary.is-loading {
+    color: var(--text-muted);
+    background: #f8faf8;
+}
+
+.monitor-summary.is-loading i {
+    color: #b7791f;
+}
+
+.camera-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    min-height: 116px;
+    margin: 0 20px 16px;
+    padding: 18px;
+    border: 1px dashed #cbd8cf;
+    border-radius: 12px;
+    color: var(--text-muted);
+    background: linear-gradient(135deg, #ffffff, #f6faf7);
+}
+
+.camera-loading-icon {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    color: #2e7d32;
+    background: #e7f2ea;
+}
+
+.camera-loading strong,
+.camera-loading span {
+    display: block;
+}
+
+.camera-loading strong {
+    color: var(--text-strong);
+    font-size: 14px;
+}
+
+.camera-loading span {
+    margin-top: 3px;
+    font-size: 12px;
 }

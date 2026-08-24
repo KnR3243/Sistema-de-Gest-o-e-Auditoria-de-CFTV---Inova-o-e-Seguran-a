@@ -1,5 +1,6 @@
 (function () {
     const API_URL = "/api/proxy";
+    const SNMP_URL = "/api/snmp-monitor";
     const DEFAULT_TIMEOUT = 15000;
     const DEFAULT_CACHE_TTL = 5 * 60 * 1000;
 
@@ -118,6 +119,34 @@
         }
     }
 
+    async function snmpMonitor(payload = {}, options = {}) {
+        const timeout = options.timeout || Math.max(18000, Number(payload.sampleMs || 5000) + 15000);
+        const controller = new AbortController();
+        const timer = window.setTimeout(() => controller.abort(), timeout);
+
+        try {
+            const response = await fetch(SNMP_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload || {}),
+                cache: "no-store",
+                signal: controller.signal
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(data.error || data.erro || `Servidor respondeu ${response.status}`);
+            }
+            return data;
+        } catch (error) {
+            if (error.name === "AbortError") {
+                throw new Error("A consulta ao NVR demorou demais. Tente novamente.");
+            }
+            throw error;
+        } finally {
+            window.clearTimeout(timer);
+        }
+    }
+
     function requireAuth() {
         if (sessionStorage.getItem("scd_auth") !== "true") {
             window.location.href = "index.html";
@@ -145,7 +174,9 @@
 
     window.SCD = {
         API_URL,
+        SNMP_URL,
         request,
+        snmpMonitor,
         clearCache,
         escapeHTML,
         safeUrl,
